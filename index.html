@@ -496,6 +496,49 @@
             border-radius: 10px;
             margin-left: 5px;
         }
+        
+        /* Новые стили для статистики методов */
+        .method-stats {
+            margin-top: 20px;
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 13px;
+        }
+        .method-stats th {
+            background: var(--primary-color);
+            color: white;
+            padding: 8px;
+            text-align: left;
+        }
+        .method-stats td {
+            padding: 8px;
+            border-bottom: 1px solid var(--history-border);
+        }
+        .method-stats tr:nth-child(even) {
+            background-color: rgba(0,0,0,0.03);
+        }
+        .dark-mode .method-stats tr:nth-child(even) {
+            background-color: rgba(255,255,255,0.05);
+        }
+        .roi-cell {
+            font-weight: bold;
+        }
+        .roi-positive {
+            color: var(--selected-color);
+        }
+        .roi-negative {
+            color: var(--secondary-color);
+        }
+        .stats-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 20px;
+        }
+        .stats-title {
+            color: var(--primary-color);
+            font-size: 1rem;
+        }
     </style>
 </head>
 <body>
@@ -593,6 +636,27 @@
                     <div id="balance" class="win-stat-value">0 руб</div>
                 </div>
             </div>
+            
+            <div class="stats-header">
+                <div class="stats-title">Эффективность методов прогнозирования</div>
+                <button id="refreshStatsBtn" style="padding: 5px 10px; font-size: 12px;">Обновить</button>
+            </div>
+            <table class="method-stats" id="methodsStats">
+                <thead>
+                    <tr>
+                        <th>Метод</th>
+                        <th>Ставок</th>
+                        <th>Потрачено</th>
+                        <th>Выиграно</th>
+                        <th>ROI</th>
+                        <th>Прибыль</th>
+                    </tr>
+                </thead>
+                <tbody id="methodsStatsBody">
+                    <!-- Данные будут добавлены через JS -->
+                </tbody>
+            </table>
+            
             <div id="winsDetails" class="wins-details"></div>
         </div>
     </div>
@@ -825,7 +889,7 @@
     // --- Добавление в историю ---
     document.getElementById('addHistoryBtn').onclick = () => {
         if(!inputValue) {
-            validationError.textContent = 'Введите числа в формате: номер_тиража|1,2,3,4,5,6,7,8|1';
+            validationError.textContent = 'Введите числа в формат: номер_тиража|1,2,3,4,5,6,7,8|1';
             validationError.style.display = 'block';
             return;
         }
@@ -1436,82 +1500,6 @@
         }, 100);
     }
     
-    // --- Расчет выигрышей ---
-    function updateWinsStats() {
-        const totalBets = history.filter(e => e.startsWith('Прогноз')).length;
-        const totalSpent = totalBets * 50;
-        let totalWon = 0;
-        let winsDetailsHTML = "";
-        
-        // Рассчитываем выигрыши для каждого прогноза
-        for (let i = 0; i < history.length; i++) {
-            const entry = history[i];
-            
-            // Работаем только с прогнозами
-            if (!entry.startsWith('Прогноз')) continue;
-            
-            const [predType, predField1, predField2] = entry.split('|');
-            const userNums1 = predField1.split(',').map(Number);
-            const userNum2 = parseInt(predField2);
-            
-            // Ищем следующий тираж после прогноза
-            let nextDraw = null;
-            for (let j = i + 1; j < history.length; j++) {
-                if (!history[j].startsWith('Прогноз')) {
-                    nextDraw = history[j];
-                    break;
-                }
-            }
-            
-            if (!nextDraw) {
-                winsDetailsHTML += `<div class="win-item">
-                    <span>${predType}</span>
-                    <span>Статус: Ожидание тиража</span>
-                </div>`;
-                continue;
-            }
-            
-            const [drawId, drawField1, drawField2] = nextDraw.split('|');
-            const drawNums1 = drawField1.split(',').map(Number);
-            const drawNum2 = parseInt(drawField2);
-            
-            // Считаем совпадения в поле 1
-            let matches1 = 0;
-            for (const num of userNums1) {
-                if (drawNums1.includes(num)) matches1++;
-            }
-            
-            // Совпадение в поле 2
-            const match2 = userNum2 === drawNum2 ? 1 : 0;
-            
-            // Рассчитываем выигрыш
-            const win = calculateWin(matches1, match2);
-            const winAmount = typeof win === "number" ? win : 0;
-            totalWon += winAmount;
-            
-            // Формируем детализацию
-            winsDetailsHTML += `<div class="win-item">
-                <span>${predType}</span>
-                <span>Тираж: ${drawField1} | ${drawNum2}</span>
-                <span>Совпадения: ${matches1}|${match2}</span>
-                <span>${typeof win === "string" ? win : win + " руб"}</span>
-            </div>`;
-        }
-        
-        // Обновляем DOM
-        document.getElementById("totalBets").textContent = totalBets;
-        document.getElementById("totalSpent").textContent = `${totalSpent} руб`;
-        document.getElementById("totalWon").textContent = `${totalWon} руб`;
-        
-        const balance = totalWon - totalSpent;
-        const balanceElem = document.getElementById("balance");
-        balanceElem.textContent = `${balance} руб`;
-        balanceElem.className = `win-stat-value ${balance >= 0 ? "profit-positive" : "profit-negative"}`;
-        
-        document.getElementById("winsDetails").innerHTML = winsDetailsHTML || 
-            "<p>Нет данных для расчета. Добавьте прогнозы и тиражи.</p>";
-    }
-
     // Функция для расчета выигрыша по совпадениям
     function calculateWin(matches1, match2) {
         if (matches1 === 8 && match2 === 1) return "Суперприз";
@@ -1523,6 +1511,134 @@
         if (matches1 === 5 && match2 === 1) return 100;
         if (matches1 === 5 && match2 === 0) return 50;
         return 0;
+    }
+    
+    // Функция для получения полного названия метода по сокращению
+    function getMethodName(abbr) {
+        const names = {
+            'хо': 'Холодные',
+            'ог': 'Огнева',
+            'ка': 'Карнауха',
+            'кл': 'Кластеризация',
+            'сл': 'Случайные'
+        };
+        return names[abbr] || abbr;
+    }
+
+    // --- Обновленная статистика выигрышей с анализом методов ---
+    function updateWinsStats() {
+        const totalBets = history.filter(e => e.startsWith('Прогноз')).length;
+        const totalSpent = totalBets * 50;
+        let totalWon = 0;
+        let winsDetailsHTML = "";
+        
+        // Сбор статистики по методам
+        const methodsStats = {
+            'хо': { bets: 0, spent: 0, won: 0, profit: 0 },
+            'ог': { bets: 0, spent: 0, won: 0, profit: 0 },
+            'ка': { bets: 0, spent: 0, won: 0, profit: 0 },
+            'кл': { bets: 0, spent: 0, won: 0, profit: 0 },
+            'сл': { bets: 0, spent: 0, won: 0, profit: 0 }
+        };
+        
+        // Рассчитываем выигрыши для каждого прогноза
+        for (let i = 0; i < history.length; i++) {
+            const entry = history[i];
+            
+            // Работаем только с прогнозами
+            if (!entry.startsWith('Прогноз')) continue;
+            
+            const [predType, predField1, predField2] = entry.split('|');
+            const methodMatch = predType.match(/\((\w+)\)/);
+            const methodAbbr = methodMatch ? methodMatch[1] : '?';
+            
+            // Проверяем, есть ли метод в нашей статистике
+            if (!methodsStats[methodAbbr]) continue;
+            
+            const userNums1 = predField1.split(',').map(Number);
+            const userNum2 = parseInt(predField2);
+            
+            // Увеличиваем счетчик ставок
+            methodsStats[methodAbbr].bets++;
+            methodsStats[methodAbbr].spent += 50;
+            
+            // Ищем следующий тираж после прогноза
+            let nextDraw = null;
+            for (let j = i + 1; j < history.length; j++) {
+                if (!history[j].startsWith('Прогноз')) {
+                    nextDraw = history[j];
+                    break;
+                }
+            }
+            
+            if (!nextDraw) continue;
+            
+            const [drawId, drawField1, drawField2] = nextDraw.split('|');
+            const drawNums1 = drawField1.split(',').map(Number);
+            const drawNum2 = parseInt(drawField2);
+            
+            // Считаем совпадения
+            let matches1 = 0;
+            for (const num of userNums1) {
+                if (drawNums1.includes(num)) matches1++;
+            }
+            const match2 = userNum2 === drawNum2 ? 1 : 0;
+            
+            // Рассчитываем выигрыш
+            const win = calculateWin(matches1, match2);
+            const winAmount = typeof win === "number" ? win : 0;
+            
+            // Обновляем общую статистику
+            totalWon += winAmount;
+            
+            // Обновляем статистику метода
+            methodsStats[methodAbbr].won += winAmount;
+            methodsStats[methodAbbr].profit += (winAmount - 50);
+            
+            // Формируем детализацию
+            winsDetailsHTML += `<div class="win-item">
+                <span>${predType}</span>
+                <span>Тираж: ${drawField1} | ${drawNum2}</span>
+                <span>Совпадения: ${matches1}|${match2}</span>
+                <span>${typeof win === "string" ? win : win + " руб"}</span>
+            </div>`;
+        }
+        
+        // Обновляем DOM для общей статистики
+        document.getElementById("totalBets").textContent = totalBets;
+        document.getElementById("totalSpent").textContent = `${totalSpent} руб`;
+        document.getElementById("totalWon").textContent = `${totalWon} руб`;
+        
+        const balance = totalWon - totalSpent;
+        const balanceElem = document.getElementById("balance");
+        balanceElem.textContent = `${balance} руб`;
+        balanceElem.className = `win-stat-value ${balance >= 0 ? "profit-positive" : "profit-negative"}`;
+        
+        document.getElementById("winsDetails").innerHTML = winsDetailsHTML || 
+            "<p>Нет данных для расчета. Добавьте прогнозы и тиражи.</p>";
+        
+        // Обновляем DOM для статистики методов
+        const methodsStatsBody = document.getElementById('methodsStatsBody');
+        methodsStatsBody.innerHTML = '';
+        
+        for (const [method, data] of Object.entries(methodsStats)) {
+            const roi = data.spent > 0 ? ((data.won / data.spent) * 100) : 0;
+            
+            const row = document.createElement('tr');
+            row.innerHTML = `
+                <td>${getMethodName(method)}</td>
+                <td>${data.bets}</td>
+                <td>${data.spent} руб</td>
+                <td>${data.won} руб</td>
+                <td class="roi-cell ${roi >= 100 ? 'roi-positive' : 'roi-negative'}">
+                    ${roi.toFixed(1)}%
+                </td>
+                <td class="${data.profit >= 0 ? 'profit-positive' : 'profit-negative'}">
+                    ${data.profit} руб
+                </td>
+            `;
+            methodsStatsBody.appendChild(row);
+        }
     }
 
     // --- Инициализация при загрузке ---
@@ -1552,6 +1668,9 @@
             }, 300);
         }
     });
+    
+    // Обработчик кнопки обновления статистики
+    document.getElementById('refreshStatsBtn').onclick = updateWinsStats;
 </script>
 </body>
 </html>

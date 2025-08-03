@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
     <link rel="apple-touch-icon" sizes="180x180" href="icons/icon180.png">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="apple-mobile-web-app-title" content="RDS5">
+    <meta name="apple-mobile-web-app-title" content="RDS3">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <title>Рапидо Старт</title>
     <style>
@@ -47,32 +47,34 @@
             -webkit-tap-highlight-color: transparent;
         }
         html, body {
-            overflow-x: hidden;
-            touch-action: manipulation;
-            -ms-touch-action: manipulation;
-            overscroll-behavior: none;
-            height: 100%;
-            width: 100%;
             position: fixed;
             overflow: hidden;
+            width: 100%;
+            height: 100%;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            touch-action: none;
+            -ms-touch-action: none;
+            overscroll-behavior: none;
         }
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
             padding: 10px;
             background: var(--bg-color);
             color: var(--text-color);
-            margin: 0 auto;
             -webkit-user-select: none;
             user-select: none;
             display: flex;
             flex-direction: column;
-            height: 100%;
         }
         .container {
             flex: 1;
             overflow-y: auto;
             width: 100%;
             padding-bottom: 10px;
+            -webkit-overflow-scrolling: touch;
         }
         h1 {
             font-size: 1.5rem;
@@ -111,16 +113,16 @@
             margin: 8px 0;
         }
         .number {
-            width: 36px;
-            height: 36px;
-            border-radius: 18px;
+            width: 42px;
+            height: 42px;
+            border-radius: 21px;
             background: var(--primary-color);
             color: white;
             display: flex;
             align-items: center;
             justify-content: center;
             font-weight: bold;
-            font-size: 15px;
+            font-size: 16px;
             transition: transform 0.2s;
         }
         .number.selected {
@@ -129,7 +131,7 @@
         }
         .number.small {
             background: var(--secondary-color);
-            width: 36px;
+            width: 42px;
         }
         .number.special {
             background: var(--special-color);
@@ -139,12 +141,12 @@
         }
         button {
             width: 100%;
-            padding: 10px;
+            padding: 12px;
             background: var(--primary-color);
             color: white;
             border: none;
             border-radius: 8px;
-            font-size: 15px;
+            font-size: 16px;
             font-weight: 500;
             cursor: pointer;
             margin-top: 8px;
@@ -159,12 +161,12 @@
         }
         #inputDisplay {
             width: 100%;
-            min-height: 70px;
+            min-height: 80px;
             border: 1px solid var(--border-color);
             border-radius: 8px;
-            padding: 8px;
+            padding: 12px;
             margin-bottom: 8px;
-            font-size: 15px;
+            font-size: 16px;
             background: var(--card-bg);
             color: var(--text-color);
             word-wrap: break-word;
@@ -179,10 +181,10 @@
             width: 100%;
             border-collapse: collapse;
             margin-top: 5px;
-            font-size: 13px;
+            font-size: 14px;
         }
         .stats-table th, .stats-table td {
-            padding: 6px;
+            padding: 8px;
             text-align: left;
             border-bottom: 1px solid var(--history-border);
         }
@@ -195,22 +197,23 @@
             font-weight: bold;
         }
         .history-item {
-            padding: 8px 0;
+            padding: 10px 0;
             border-bottom: 1px solid var(--history-border);
-            font-size: 13px;
+            font-size: 14px;
             display: flex;
             justify-content: space-between;
             align-items: center;
         }
         .history-item button {
             width: auto;
-            padding: 2px 8px;
+            padding: 4px 12px;
             margin: 0;
             background: var(--secondary-color);
             color: white;
             border: none;
             border-radius: 4px;
             cursor: pointer;
+            font-size: 14px;
         }
         .custom-keyboard {
             position: fixed;
@@ -218,30 +221,30 @@
             left: 0;
             right: 0;
             background: var(--keyboard-bg);
-            padding: 8px;
+            padding: 10px;
             border-top: 1px solid var(--border-color);
             z-index: 1000;
             display: none;
             flex-direction: column;
-            gap: 6px;
+            gap: 8px;
             touch-action: manipulation;
             padding-bottom: env(safe-area-inset-bottom);
         }
         .keyboard-row {
             display: flex;
             justify-content: space-between;
-            gap: 6px;
+            gap: 8px;
         }
         .keyboard-key {
             flex: 1;
-            height: 48px;
+            height: 54px;
             background: var(--card-bg);
             border: 1px solid var(--border-color);
-            border-radius: 6px;
+            border-radius: 8px;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 18px;
+            font-size: 22px;
             font-weight: bold;
             cursor: pointer;
             user-select: none;
@@ -265,9 +268,9 @@
             position: fixed;
             top: 10px;
             right: 10px;
-            width: 40px;
-            height: 40px;
-            border-radius: 20px;
+            width: 44px;
+            height: 44px;
+            border-radius: 22px;
             background: var(--primary-color);
             color: white;
             display: flex;
@@ -277,10 +280,11 @@
             z-index: 1000;
             border: none;
             box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+            font-size: 20px;
         }
         .validation-error {
             color: var(--secondary-color);
-            font-size: 12px;
+            font-size: 14px;
             margin-top: 5px;
             display: none;
         }
@@ -292,12 +296,12 @@
         }
         .method-btn {
             flex: 1;
-            min-width: 70px;
-            padding: 8px 5px;
+            min-width: 80px;
+            padding: 10px 5px;
             text-align: center;
             background: var(--keyboard-bg);
             border-radius: 8px;
-            font-size: 13px;
+            font-size: 14px;
             cursor: pointer;
             user-select: none;
         }
@@ -307,14 +311,14 @@
         }
         .info-icon {
             display: inline-block;
-            width: 16px;
-            height: 16px;
-            border-radius: 8px;
+            width: 18px;
+            height: 18px;
+            border-radius: 9px;
             background: var(--primary-color);
             color: white;
             text-align: center;
-            line-height: 16px;
-            font-size: 12px;
+            line-height: 18px;
+            font-size: 14px;
             margin-left: 5px;
             cursor: help;
         }
@@ -337,7 +341,7 @@
             min-width: 100px;
         }
         .win-stat-value {
-            font-size: 1.2rem;
+            font-size: 1.3rem;
             font-weight: bold;
             margin-top: 5px;
         }
@@ -353,9 +357,9 @@
             margin-top: 10px;
         }
         .win-item {
-            padding: 8px 0;
+            padding: 10px 0;
             border-bottom: 1px solid var(--history-border);
-            font-size: 13px;
+            font-size: 14px;
             display: flex;
             flex-wrap: wrap;
             justify-content: space-between;
@@ -364,19 +368,22 @@
         .win-item > span {
             flex: 1;
             min-width: 120px;
+            font-size: 14px;
         }
         
         /* Стили для истории */
         .history-header {
             display: flex;
             font-weight: bold;
-            padding: 5px 0;
+            padding: 8px 0;
             border-bottom: 2px solid var(--primary-color);
+            font-size: 14px;
         }
         .history-row {
             display: flex;
-            padding: 8px 0;
+            padding: 10px 0;
             border-bottom: 1px solid var(--history-border);
+            font-size: 14px;
         }
         .history-type {
             width: 100px;
@@ -391,7 +398,7 @@
             text-align: center;
         }
         .history-actions {
-            width: 60px;
+            width: 70px;
             text-align: right;
         }
         .prediction {
@@ -403,9 +410,6 @@
         
         /* Для полноэкранного режима */
         @media (display-mode: fullscreen) {
-            .container {
-                padding-bottom: 320px;
-            }
             .custom-keyboard {
                 padding-bottom: env(safe-area-inset-bottom);
             }
@@ -424,10 +428,10 @@
         
         .calc-details {
             margin-top: 10px;
-            padding: 10px;
+            padding: 12px;
             background: var(--card-bg);
             border-radius: 8px;
-            font-size: 13px;
+            font-size: 14px;
             display: none;
         }
         .calc-details.active {
@@ -437,6 +441,7 @@
             font-weight: bold;
             margin-bottom: 5px;
             color: var(--primary-color);
+            font-size: 16px;
         }
         
         /* PWA режим */
@@ -444,22 +449,22 @@
             padding-bottom: calc(280px + env(safe-area-inset-bottom));
         }
         .pwa-mode .custom-keyboard {
-            padding-bottom: max(8px, env(safe-area-inset-bottom));
+            padding-bottom: max(10px, env(safe-area-inset-bottom));
         }
         
         /* Добавленные стили */
         .frequency-chart {
             display: flex;
             align-items: flex-end;
-            height: 120px;
-            margin: 10px 0;
-            gap: 2px;
+            height: 140px;
+            margin: 15px 0;
+            gap: 3px;
             justify-content: center;
         }
         .frequency-bar {
-            width: 12px;
+            width: 14px;
             background: var(--primary-color);
-            border-radius: 3px 3px 0 0;
+            border-radius: 4px 4px 0 0;
             position: relative;
         }
         .frequency-bar.hot {
@@ -470,41 +475,42 @@
         }
         .frequency-label {
             position: absolute;
-            bottom: -20px;
+            bottom: -22px;
             left: 50%;
             transform: translateX(-50%);
-            font-size: 10px;
+            font-size: 11px;
         }
         .stats-advanced {
             margin-top: 15px;
-            font-size: 13px;
+            font-size: 14px;
         }
         .cluster-row {
             display: flex;
             flex-wrap: wrap;
-            gap: 5px;
-            margin: 8px 0;
+            gap: 6px;
+            margin: 10px 0;
         }
         .cluster-title {
             font-weight: bold;
             width: 100%;
             margin-top: 10px;
             color: var(--special-color);
+            font-size: 15px;
         }
         .cluster-badge {
             background: var(--special-color);
             color: white;
-            padding: 2px 8px;
-            border-radius: 10px;
-            font-size: 12px;
+            padding: 3px 10px;
+            border-radius: 12px;
+            font-size: 13px;
             margin-left: 5px;
         }
         .method-badge {
-            font-size: 11px;
+            font-size: 12px;
             background: var(--special-color);
             color: white;
-            padding: 2px 6px;
-            border-radius: 10px;
+            padding: 3px 8px;
+            border-radius: 12px;
             margin-left: 5px;
         }
         
@@ -512,18 +518,20 @@
         .method-stats {
             width: 100%;
             border-collapse: collapse;
-            font-size: 13px;
+            font-size: 14px;
             margin-top: 10px;
         }
         .method-stats th {
             background: var(--primary-color);
             color: white;
-            padding: 8px;
+            padding: 10px;
             text-align: left;
+            font-size: 14px;
         }
         .method-stats td {
-            padding: 8px;
+            padding: 10px;
             border-bottom: 1px solid var(--history-border);
+            font-size: 14px;
         }
         .method-stats tr:nth-child(even) {
             background-color: rgba(0,0,0,0.03);
@@ -548,26 +556,26 @@
         }
         .stats-title {
             color: var(--primary-color);
-            font-size: 1rem;
+            font-size: 1.1rem;
         }
         
         /* Адаптивность */
         @media (max-width: 480px) {
             .number {
-                width: 32px;
-                height: 32px;
-                font-size: 14px;
+                width: 38px;
+                height: 38px;
+                font-size: 15px;
             }
             
             .keyboard-key {
-                height: 42px;
-                font-size: 16px;
+                height: 50px;
+                font-size: 20px;
             }
             
             .stats-table th, 
             .stats-table td {
-                padding: 4px;
-                font-size: 12px;
+                padding: 6px;
+                font-size: 13px;
             }
             
             .history-type {
@@ -580,8 +588,14 @@
             
             .method-stats th,
             .method-stats td {
-                padding: 6px 4px;
-                font-size: 12px;
+                padding: 8px 5px;
+                font-size: 13px;
+            }
+            
+            .method-btn {
+                min-width: 70px;
+                font-size: 13px;
+                padding: 8px 4px;
             }
         }
     </style>
@@ -684,7 +698,7 @@
             
             <div class="stats-header">
                 <div class="stats-title">Эффективность методов прогнозирования</div>
-                <button id="refreshStatsBtn" style="padding: 5px 10px; font-size: 12px;">Обновить</button>
+                <button id="refreshStatsBtn" style="padding: 6px 12px; font-size: 14px;">Обновить</button>
             </div>
             <table class="method-stats" id="methodsStats">
                 <thead>

@@ -46,6 +46,15 @@
             transition: background-color 0.3s, color 0.3s;
             -webkit-tap-highlight-color: transparent;
         }
+        html, body {
+            overflow-x: hidden;
+            touch-action: manipulation;
+            -ms-touch-action: manipulation;
+            overscroll-behavior: none;
+            height: 100%;
+            width: 100%;
+            position: fixed;
+        }
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
             padding: 10px;
@@ -62,6 +71,9 @@
             width: 100%;
             margin: 0 auto;
             padding-bottom: 280px;
+            max-height: 100vh;
+            overflow-y: auto;
+            box-sizing: border-box;
         }
         h1 {
             font-size: 1.5rem;
@@ -499,10 +511,10 @@
         
         /* Новые стили для статистики методов */
         .method-stats {
-            margin-top: 20px;
             width: 100%;
             border-collapse: collapse;
             font-size: 13px;
+            margin-top: 10px;
         }
         .method-stats th {
             background: var(--primary-color);
@@ -538,6 +550,40 @@
         .stats-title {
             color: var(--primary-color);
             font-size: 1rem;
+        }
+        
+        /* Адаптивность */
+        @media (max-width: 480px) {
+            .number {
+                width: 32px;
+                height: 32px;
+                font-size: 14px;
+            }
+            
+            .keyboard-key {
+                height: 42px;
+                font-size: 16px;
+            }
+            
+            .stats-table th, 
+            .stats-table td {
+                padding: 4px;
+                font-size: 12px;
+            }
+            
+            .history-type {
+                width: 80px;
+            }
+            
+            .history-field {
+                flex: 2;
+            }
+            
+            .method-stats th,
+            .method-stats td {
+                padding: 6px 4px;
+                font-size: 12px;
+            }
         }
     </style>
 </head>
@@ -706,6 +752,19 @@
         document.documentElement.classList.add('pwa-mode');
     }
 
+    // Блокировка масштабирования
+    let lastTouchTime = 0;
+    document.addEventListener('touchend', event => {
+        const now = new Date().getTime();
+        if (now - lastTouchTime < 300) {
+            event.preventDefault();
+        }
+        lastTouchTime = now;
+    }, { passive: false });
+
+    document.addEventListener('gesturestart', e => e.preventDefault());
+    document.addEventListener('gesturechange', e => e.preventDefault());
+
     // --- История ---
     let history = JSON.parse(localStorage.getItem('rapido2History') || '[]');
     if (!Array.isArray(history)) history = [];
@@ -792,6 +851,8 @@
         customKeyboard.style.display = 'flex';
         inputDisplay.classList.add('input-active');
         validationError.style.display = 'none';
+        document.body.style.height = `${window.innerHeight}px`;
+        document.body.style.overflow = 'hidden';
         
         // Фокус на скрытое поле для iOS в PWA режиме
         setTimeout(() => {
@@ -802,6 +863,8 @@
     function hideKeyboard() {
         customKeyboard.style.display = 'none';
         inputDisplay.classList.remove('input-active');
+        document.body.style.height = '';
+        document.body.style.overflow = '';
     }
     
     function updateInputDisplay() {
@@ -1548,17 +1611,22 @@
             // Работаем только с прогнозами
             if (!entry.startsWith('Прогноз')) continue;
             
-            const [predType, predField1, predField2] = entry.split('|');
-            const methodMatch = predType.match(/\((\w+)\)/);
+            const parts = entry.split('|');
+            if (parts.length < 3) continue;
+            
+            // ИСПРАВЛЕНИЕ: Правильно извлекаем метод
+            const methodMatch = parts[0].match(/\(([а-яё]+)\)/i);
             const methodAbbr = methodMatch ? methodMatch[1] : '?';
             
-            // Проверяем, есть ли метод в нашей статистике
-            if (!methodsStats[methodAbbr]) continue;
+            // Если метод не инициализирован - инициализируем
+            if (!methodsStats[methodAbbr]) {
+                methodsStats[methodAbbr] = { bets: 0, spent: 0, won: 0, profit: 0 };
+            }
             
-            const userNums1 = predField1.split(',').map(Number);
-            const userNum2 = parseInt(predField2);
+            const userNums1 = parts[1].split(',').map(Number);
+            const userNum2 = parseInt(parts[2]);
             
-            // Увеличиваем счетчик ставок
+            // Увеличиваем счетчик ставок ДЛЯ КОНКРЕТНОГО МЕТОДА
             methodsStats[methodAbbr].bets++;
             methodsStats[methodAbbr].spent += 50;
             
@@ -1597,7 +1665,7 @@
             
             // Формируем детализацию
             winsDetailsHTML += `<div class="win-item">
-                <span>${predType}</span>
+                <span>${parts[0]}</span>
                 <span>Тираж: ${drawField1} | ${drawNum2}</span>
                 <span>Совпадения: ${matches1}|${match2}</span>
                 <span>${typeof win === "string" ? win : win + " руб"}</span>
@@ -1621,12 +1689,29 @@
         const methodsStatsBody = document.getElementById('methodsStatsBody');
         methodsStatsBody.innerHTML = '';
         
-        for (const [method, data] of Object.entries(methodsStats)) {
+        // Фильтруем методы, по которым есть данные
+        const methodsWithData = Object.entries(methodsStats).filter(([_, data]) => data.bets > 0);
+        
+        if (methodsWithData.length === 0) {
+            methodsStatsBody.innerHTML = `
+                <tr>
+                    <td colspan="6" style="text-align: center; padding: 20px;">
+                        Нет данных для отображения. Добавьте прогнозы и тиражи.
+                    </td>
+                </tr>
+            `;
+            return;
+        }
+        
+        // Сортируем методы по количеству ставок
+        methodsWithData.sort((a, b) => b[1].bets - a[1].bets);
+        
+        methodsWithData.forEach(([methodAbbr, data]) => {
             const roi = data.spent > 0 ? ((data.won / data.spent) * 100) : 0;
             
             const row = document.createElement('tr');
             row.innerHTML = `
-                <td>${getMethodName(method)}</td>
+                <td>${getMethodName(methodAbbr)}</td>
                 <td>${data.bets}</td>
                 <td>${data.spent} руб</td>
                 <td>${data.won} руб</td>
@@ -1638,7 +1723,7 @@
                 </td>
             `;
             methodsStatsBody.appendChild(row);
-        }
+        });
     }
 
     // --- Инициализация при загрузке ---

@@ -46,19 +46,15 @@
             transition: background-color 0.3s, color 0.3s;
             -webkit-tap-highlight-color: transparent;
         }
+        
         html, body {
-            position: fixed;
-            overflow: hidden;
             width: 100%;
             height: 100%;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            touch-action: none;
-            -ms-touch-action: none;
-            overscroll-behavior: none;
+            margin: 0;
+            padding: 0;
+            overflow: hidden; /* Разрешаем скролл только внутри контейнера */
         }
+        
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
             padding: 10px;
@@ -68,8 +64,16 @@
             user-select: none;
             display: flex;
             flex-direction: column;
+            position: relative;
+        }
+        
+        body.keyboard-open {
+            position: fixed;
+            width: 100%;
+            height: 100%;
             overflow: hidden;
         }
+        
         .container {
             flex: 1;
             overflow-y: auto;
@@ -78,12 +82,14 @@
             -webkit-overflow-scrolling: touch;
             overscroll-behavior: contain;
         }
+        
         h1 {
             font-size: 1.5rem;
             text-align: center;
             color: var(--primary-color);
             margin-bottom: 5px;
         }
+        
         .subtitle {
             text-align: center;
             color: var(--text-color);
@@ -91,6 +97,7 @@
             margin-bottom: 15px;
             font-size: 0.9rem;
         }
+        
         .card {
             background: var(--card-bg);
             border-radius: 12px;
@@ -98,22 +105,26 @@
             margin-bottom: 12px;
             box-shadow: 0 2px 8px rgba(0,0,0,0.1);
         }
+        
         h2 {
             color: var(--primary-color);
             font-size: 1.2rem;
             margin-bottom: 8px;
         }
+        
         h3 {
             color: var(--primary-color);
             font-size: 1rem;
             margin: 10px 0 5px;
         }
+        
         .numbers {
             display: flex;
             flex-wrap: wrap;
             gap: 6px;
             margin: 8px 0;
         }
+        
         .number {
             width: 46px;
             height: 46px;
@@ -127,20 +138,25 @@
             font-size: 18px;
             transition: transform 0.2s;
         }
+        
         .number.selected {
             background: var(--selected-color);
             transform: scale(1.1);
         }
+        
         .number.small {
             background: var(--secondary-color);
             width: 46px;
         }
+        
         .number.special {
             background: var(--special-color);
         }
+        
         .number.karnaugh {
             background: var(--karnaugh-color);
         }
+        
         button {
             width: 100%;
             padding: 14px;
@@ -154,13 +170,16 @@
             margin-top: 10px;
             outline: none;
         }
+        
         button:active, button:focus {
             background: var(--button-active);
         }
+        
         button.secondary {
             background: var(--keyboard-bg);
             color: var(--text-color);
         }
+        
         #inputDisplay {
             width: 100%;
             min-height: 90px;
@@ -175,29 +194,35 @@
             -webkit-user-select: none;
             user-select: none;
         }
+        
         .input-active {
             border-color: var(--primary-color);
             box-shadow: 0 0 0 2px rgba(0,102,204,0.2);
         }
+        
         .stats-table {
             width: 100%;
             border-collapse: collapse;
             margin-top: 8px;
             font-size: 15px;
         }
+        
         .stats-table th, .stats-table td {
             padding: 8px;
             text-align: left;
             border-bottom: 1px solid var(--history-border);
         }
+        
         .hot {
             color: var(--secondary-color);
             font-weight: bold;
         }
+        
         .cold {
             color: var(--primary-color);
             font-weight: bold;
         }
+        
         .history-item {
             padding: 12px 0;
             border-bottom: 1px solid var(--history-border);
@@ -206,6 +231,7 @@
             justify-content: space-between;
             align-items: center;
         }
+        
         .history-item button {
             width: auto;
             padding: 6px 14px;
@@ -217,6 +243,7 @@
             cursor: pointer;
             font-size: 15px;
         }
+        
         .custom-keyboard {
             position: fixed;
             bottom: 0;
@@ -232,11 +259,13 @@
             touch-action: manipulation;
             padding-bottom: env(safe-area-inset-bottom);
         }
+        
         .keyboard-row {
             display: flex;
             justify-content: space-between;
             gap: 10px;
         }
+        
         .keyboard-key {
             flex: 1;
             height: 60px;
@@ -252,20 +281,25 @@
             user-select: none;
             color: var(--text-color);
         }
+        
         .keyboard-key:active {
             background: var(--history-border);
         }
+        
         .keyboard-key.wide {
             flex: 2;
         }
+        
         .keyboard-key.blue {
             background: var(--primary-color);
             color: white;
         }
+        
         .keyboard-key.red {
             background: var(--secondary-color);
             color: white;
         }
+        
         .theme-toggle {
             position: fixed;
             top: 10px;
@@ -284,18 +318,21 @@
             box-shadow: 0 2px 5px rgba(0,0,0,0.2);
             font-size: 22px;
         }
+        
         .validation-error {
             color: var(--secondary-color);
             font-size: 14px;
             margin-top: 8px;
             display: none;
         }
+        
         .method-selector {
             display: flex;
             gap: 8px;
             margin-bottom: 15px;
             flex-wrap: wrap;
         }
+        
         .method-btn {
             flex: 1;
             min-width: 85px;
@@ -307,10 +344,12 @@
             cursor: pointer;
             user-select: none;
         }
+        
         .method-btn.active {
             background: var(--primary-color);
             color: white;
         }
+        
         .info-icon {
             display: inline-block;
             width: 20px;
@@ -337,27 +376,33 @@
             box-shadow: 0 2px 4px rgba(0,0,0,0.1);
             gap: 12px;
         }
+        
         .win-stat {
             text-align: center;
             flex: 1;
             min-width: 100px;
         }
+        
         .win-stat-value {
             font-size: 1.4rem;
             font-weight: bold;
             margin-top: 8px;
         }
+        
         .profit-positive {
             color: var(--selected-color);
         }
+        
         .profit-negative {
             color: var(--secondary-color);
         }
+        
         .wins-details {
             max-height: 300px;
             overflow-y: auto;
             margin-top: 12px;
         }
+        
         .win-item {
             padding: 12px 0;
             border-bottom: 1px solid var(--history-border);
@@ -367,6 +412,7 @@
             justify-content: space-between;
             gap: 6px;
         }
+        
         .win-item > span {
             flex: 1;
             min-width: 130px;
@@ -381,31 +427,38 @@
             border-bottom: 2px solid var(--primary-color);
             font-size: 15px;
         }
+        
         .history-row {
             display: flex;
             padding: 12px 0;
             border-bottom: 1px solid var(--history-border);
             font-size: 15px;
         }
+        
         .history-type {
             width: 110px;
             font-weight: bold;
         }
+        
         .history-field {
             flex: 1;
             min-width: 0;
         }
+        
         .history-field2 {
             width: 60px;
             text-align: center;
         }
+        
         .history-actions {
             width: 70px;
             text-align: right;
         }
+        
         .prediction {
             background-color: rgba(52, 199, 89, 0.1);
         }
+        
         .draw {
             background-color: rgba(0, 122, 255, 0.1);
         }
@@ -436,9 +489,11 @@
             font-size: 15px;
             display: none;
         }
+        
         .calc-details.active {
             display: block;
         }
+        
         .calc-title {
             font-weight: bold;
             margin-bottom: 8px;
@@ -450,6 +505,7 @@
         .pwa-mode .container {
             padding-bottom: calc(280px + env(safe-area-inset-bottom));
         }
+        
         .pwa-mode .custom-keyboard {
             padding-bottom: max(12px, env(safe-area-inset-bottom));
         }
@@ -463,18 +519,22 @@
             gap: 4px;
             justify-content: center;
         }
+        
         .frequency-bar {
             width: 16px;
             background: var(--primary-color);
             border-radius: 5px 5px 0 0;
             position: relative;
         }
+        
         .frequency-bar.hot {
             background: var(--secondary-color);
         }
+        
         .frequency-bar.cold {
             background: var(--primary-color);
         }
+        
         .frequency-label {
             position: absolute;
             bottom: -24px;
@@ -482,16 +542,19 @@
             transform: translateX(-50%);
             font-size: 12px;
         }
+        
         .stats-advanced {
             margin-top: 18px;
             font-size: 15px;
         }
+        
         .cluster-row {
             display: flex;
             flex-wrap: wrap;
             gap: 8px;
             margin: 12px 0;
         }
+        
         .cluster-title {
             font-weight: bold;
             width: 100%;
@@ -499,6 +562,7 @@
             color: var(--special-color);
             font-size: 16px;
         }
+        
         .cluster-badge {
             background: var(--special-color);
             color: white;
@@ -507,6 +571,7 @@
             font-size: 14px;
             margin-left: 6px;
         }
+        
         .method-badge {
             font-size: 13px;
             background: var(--special-color);
@@ -523,6 +588,7 @@
             font-size: 15px;
             margin-top: 12px;
         }
+        
         .method-stats th {
             background: var(--primary-color);
             color: white;
@@ -530,32 +596,40 @@
             text-align: left;
             font-size: 15px;
         }
+        
         .method-stats td {
             padding: 12px;
             border-bottom: 1px solid var(--history-border);
             font-size: 15px;
         }
+        
         .method-stats tr:nth-child(even) {
             background-color: rgba(0,0,0,0.03);
         }
+        
         .dark-mode .method-stats tr:nth-child(even) {
             background-color: rgba(255,255,255,0.05);
         }
+        
         .roi-cell {
             font-weight: bold;
         }
+        
         .roi-positive {
             color: var(--selected-color);
         }
+        
         .roi-negative {
             color: var(--secondary-color);
         }
+        
         .stats-header {
             display: flex;
             justify-content: space-between;
             align-items: center;
             margin-top: 24px;
         }
+        
         .stats-title {
             color: var(--primary-color);
             font-size: 1.2rem;
@@ -768,17 +842,9 @@
     }
 
     // --- БЛОКИРОВКА ПЕРЕМЕЩЕНИЯ ЭКРАНА ---
-    document.addEventListener('touchmove', function(event) {
-        // Разрешаем прокрутку только внутри контейнера
-        if (!event.target.closest('.container')) {
-            event.preventDefault();
-        }
-    }, { passive: false });
-
-    document.addEventListener('gesturestart', e => e.preventDefault());
-    document.addEventListener('gesturechange', e => e.preventDefault());
-    document.addEventListener('gestureend', e => e.preventDefault());
-
+    // Удаляем глобальную блокировку прокрутки
+    // Вместо нее будем блокировать прокрутку только при открытой клавиатуре
+    
     // Блокировка масштабирования
     let lastTouchTime = 0;
     document.addEventListener('touchend', event => {
@@ -876,15 +942,28 @@
         inputDisplay.classList.add('input-active');
         validationError.style.display = 'none';
         
+        // Устанавливаем состояние открытой клавиатуры
+        document.body.classList.add('keyboard-open');
+        document.body.style.overflow = 'hidden';
+        
         // Фокус на скрытое поле для iOS в PWA режиме
         setTimeout(() => {
             fakeInput.focus();
+            // Прокручиваем к полю ввода
+            inputDisplay.scrollIntoView({ 
+                behavior: 'smooth', 
+                block: 'center' 
+            });
         }, 100);
     }
     
     function hideKeyboard() {
         customKeyboard.style.display = 'none';
         inputDisplay.classList.remove('input-active');
+        
+        // Снимаем блокировку прокрутки
+        document.body.classList.remove('keyboard-open');
+        document.body.style.overflow = '';
     }
     
     function updateInputDisplay() {

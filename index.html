@@ -672,6 +672,23 @@
                 font-size: 14px;
                 padding: 10px 5px;
             }
+/* --- Фиксация интерфейса и адаптация под iPad --- */
+body {
+    padding: 0 !important; /* Убираем внутренний отступ у body */
+}
+.container {
+    width: 100vw !important;   /* Растягиваем контейнер на всю ширину экрана */
+    min-height: 0 !important;  /* Для корректного flex на iPad */
+    padding-left: 12px;
+    padding-right: 12px;
+}
+@media (min-width: 768px) and (max-width: 1024px) {
+    .container {
+        max-width: 800px;
+        margin: 0 auto;
+        padding-left: 24px;
+        padding-right: 24px;
+    }
         }
     </style>
 </head>

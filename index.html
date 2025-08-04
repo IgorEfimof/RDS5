@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="ru">
+<html lang="ru" style="height: 100%;">
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
@@ -53,22 +53,39 @@
             margin: 0;
             padding: 0;
             overflow: hidden;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            touch-action: none;
         }
         
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            padding: 10px;
             background: var(--bg-color);
             color: var(--text-color);
             -webkit-user-select: none;
             user-select: none;
             display: flex;
             flex-direction: column;
-            position: absolute; /* Изменено с relative на absolute */
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
+            padding: 10px;
+            overflow: hidden;
+        }
+        
+        .app-container {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            position: relative;
+        }
+        
+        .content-wrapper {
+            flex: 1;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
         }
         
         .container {
@@ -674,143 +691,147 @@
     </style>
 </head>
 <body>
-    <button class="theme-toggle" id="themeToggle">🌓</button>
-    
-    <div class="container">
-        <div class="card">
-            <h1>Рапидо Старт</h1>
-            <p class="subtitle">Анализ с методами Огнева, Карнауха и кластеризацией</p>
-        </div>
+    <div class="app-container">
+        <button class="theme-toggle" id="themeToggle">🌓</button>
         
-        <div class="card">
-            <h2>Сгенерировать числа</h2>
-            <div class="method-selector">
-                <div class="method-btn active" data-method="cold" tabindex="0">Холодные<span class="method-badge">хо</span></div>
-                <div class="method-btn" data-method="ogneva" tabindex="0">Огнева<span class="method-badge">ог</span></div>
-                <div class="method-btn" data-method="karnaugh" tabindex="0">Карнауха<span class="method-badge">ка</span></div>
-                <div class="method-btn" data-method="cluster" tabindex="0">Кластеризация<span class="method-badge">кл</span></div>
-                <div class="method-btn" data-method="random" tabindex="0">Случайные<span class="method-badge">сл</span></div>
-            </div>
-            <p>Поле 1 (8 из 20):</p>
-            <div class="numbers" id="field1"></div>
-            <p>Поле 2 (1 из 4):</p>
-            <div class="numbers" id="field2"></div>
-            
-            <div id="karnaughCalc" class="calc-details">
-                <div class="calc-title">Расчет метода Карнауха:</div>
-                <div id="karnaughDetails"></div>
-            </div>
-            
-            <div id="clusterCalc" class="calc-details">
-                <div class="calc-title">Детали кластеризации:</div>
-                <div id="clusterDetails"></div>
-            </div>
-            
-            <button id="genBtn">Сгенерировать</button>
-            <button id="addPredictionBtn" style="margin-top: 8px; background: var(--selected-color)">Добавить прогноз</button>
-        </div>
-        
-        <div class="card">
-            <h2>Добавить тираж</h2>
-            <div id="inputContainer" style="position:relative;">
-                <input type="text" id="fakeInput" readonly tabindex="-1" />
-                <div id="inputDisplay" tabindex="0">Коснитесь для ввода (формат: номер_тиража|1,2,3,4,5,6,7,8|1)</div>
-                <div id="validationError" class="validation-error"></div>
-            </div>
-            <button id="addHistoryBtn">Добавить</button>
-        </div>
-        
-        <div class="card">
-            <h2>Статистика чисел</h2>
-            <table class="stats-table" id="statsTable"></table>
-        </div>
-        
-        <div class="card">
-            <h2>Расширенный частотный анализ <span class="cluster-badge">Новое</span></h2>
-            <div class="stats-advanced">
-                <p>Среднее значение: <span id="meanValue">н/д</span></p>
-                <p>Стандартное отклонение: <span id="stdDevValue">н/д</span></p>
-                <p>Горячие числа (выше среднего): <span id="hotNumbers">н/д</span></p>
-                <p>Холодные числа (ниже среднего): <span id="coldNumbers">н/д</span></p>
-            </div>
-            <div class="frequency-chart" id="frequencyChart"></div>
-        </div>
-        
-        <div class="card" style="max-height: 300px; overflow-y: auto;">
-            <h2>История розыгрышей</h2>
-            <div class="history-header">
-                <div class="history-type">Тип</div>
-                <div class="history-field">Поле 1 (8 из 20)</div>
-                <div class="history-field2">Поле 2</div>
-                <div class="history-actions"></div>
-            </div>
-            <div id="historyList"></div>
-            <button id="clearHistoryBtn" class="secondary">Очистить историю</button>
-        </div>
-        
-        <div class="card">
-            <h2>Статистика выигрышей</h2>
-            <div id="winsStats" class="win-stats">
-                <div class="win-stat">
-                    <div>Ставок</div>
-                    <div id="totalBets" class="win-stat-value">0</div>
+        <div class="content-wrapper">
+            <div class="container">
+                <div class="card">
+                    <h1>Рапидо Старт</h1>
+                    <p class="subtitle">Анализ с методами Огнева, Карнауха и кластеризацией</p>
                 </div>
-                <div class="win-stat">
-                    <div>Потрачено</div>
-                    <div id="totalSpent" class="win-stat-value">0 руб</div>
+                
+                <div class="card">
+                    <h2>Сгенерировать числа</h2>
+                    <div class="method-selector">
+                        <div class="method-btn active" data-method="cold" tabindex="0">Холодные<span class="method-badge">хо</span></div>
+                        <div class="method-btn" data-method="ogneva" tabindex="0">Огнева<span class="method-badge">ог</span></div>
+                        <div class="method-btn" data-method="karnaugh" tabindex="0">Карнауха<span class="method-badge">ка</span></div>
+                        <div class="method-btn" data-method="cluster" tabindex="0">Кластеризация<span class="method-badge">кл</span></div>
+                        <div class="method-btn" data-method="random" tabindex="0">Случайные<span class="method-badge">сл</span></div>
+                    </div>
+                    <p>Поле 1 (8 из 20):</p>
+                    <div class="numbers" id="field1"></div>
+                    <p>Поле 2 (1 из 4):</p>
+                    <div class="numbers" id="field2"></div>
+                    
+                    <div id="karnaughCalc" class="calc-details">
+                        <div class="calc-title">Расчет метода Карнауха:</div>
+                        <div id="karnaughDetails"></div>
+                    </div>
+                    
+                    <div id="clusterCalc" class="calc-details">
+                        <div class="calc-title">Детали кластеризации:</div>
+                        <div id="clusterDetails"></div>
+                    </div>
+                    
+                    <button id="genBtn">Сгенерировать</button>
+                    <button id="addPredictionBtn" style="margin-top: 8px; background: var(--selected-color)">Добавить прогноз</button>
                 </div>
-                <div class="win-stat">
-                    <div>Выиграно</div>
-                    <div id="totalWon" class="win-stat-value">0 руб</div>
+                
+                <div class="card">
+                    <h2>Добавить тираж</h2>
+                    <div id="inputContainer" style="position:relative;">
+                        <input type="text" id="fakeInput" readonly tabindex="-1" />
+                        <div id="inputDisplay" tabindex="0">Коснитесь для ввода (формат: номер_тиража|1,2,3,4,5,6,7,8|1)</div>
+                        <div id="validationError" class="validation-error"></div>
+                    </div>
+                    <button id="addHistoryBtn">Добавить</button>
                 </div>
-                <div class="win-stat">
-                    <div>Баланс</div>
-                    <div id="balance" class="win-stat-value">0 руб</div>
+                
+                <div class="card">
+                    <h2>Статистика чисел</h2>
+                    <table class="stats-table" id="statsTable"></table>
+                </div>
+                
+                <div class="card">
+                    <h2>Расширенный частотный анализ <span class="cluster-badge">Новое</span></h2>
+                    <div class="stats-advanced">
+                        <p>Среднее значение: <span id="meanValue">н/д</span></p>
+                        <p>Стандартное отклонение: <span id="stdDevValue">н/д</span></p>
+                        <p>Горячие числа (выше среднего): <span id="hotNumbers">н/д</span></p>
+                        <p>Холодные числа (ниже среднего): <span id="coldNumbers">н/д</span></p>
+                    </div>
+                    <div class="frequency-chart" id="frequencyChart"></div>
+                </div>
+                
+                <div class="card" style="max-height: 300px; overflow-y: auto;">
+                    <h2>История розыгрышей</h2>
+                    <div class="history-header">
+                        <div class="history-type">Тип</div>
+                        <div class="history-field">Поле 1 (8 из 20)</div>
+                        <div class="history-field2">Поле 2</div>
+                        <div class="history-actions"></div>
+                    </div>
+                    <div id="historyList"></div>
+                    <button id="clearHistoryBtn" class="secondary">Очистить историю</button>
+                </div>
+                
+                <div class="card">
+                    <h2>Статистика выигрышей</h2>
+                    <div id="winsStats" class="win-stats">
+                        <div class="win-stat">
+                            <div>Ставок</div>
+                            <div id="totalBets" class="win-stat-value">0</div>
+                        </div>
+                        <div class="win-stat">
+                            <div>Потрачено</div>
+                            <div id="totalSpent" class="win-stat-value">0 руб</div>
+                        </div>
+                        <div class="win-stat">
+                            <div>Выиграно</div>
+                            <div id="totalWon" class="win-stat-value">0 руб</div>
+                        </div>
+                        <div class="win-stat">
+                            <div>Баланс</div>
+                            <div id="balance" class="win-stat-value">0 руб</div>
+                        </div>
+                    </div>
+                    
+                    <div class="stats-header">
+                        <div class="stats-title">Эффективность методов прогнозирования</div>
+                        <button id="refreshStatsBtn" style="padding: 8px 14px; font-size: 15px;">Обновить</button>
+                    </div>
+                    <table class="method-stats" id="methodsStats">
+                        <thead>
+                            <tr>
+                                <th>Метод</th>
+                                <th>Ставок</th>
+                                <th>Потрачено</th>
+                                <th>Выиграно</th>
+                                <th>ROI</th>
+                                <th>Прибыль</th>
+                            </tr>
+                        </thead>
+                        <tbody id="methodsStatsBody">
+                            <!-- Данные будут добавлены через JS -->
+                        </tbody>
+                    </table>
+                    
+                    <div id="winsDetails" class="wins-details"></div>
                 </div>
             </div>
-            
-            <div class="stats-header">
-                <div class="stats-title">Эффективность методов прогнозирования</div>
-                <button id="refreshStatsBtn" style="padding: 8px 14px; font-size: 15px;">Обновить</button>
-            </div>
-            <table class="method-stats" id="methodsStats">
-                <thead>
-                    <tr>
-                        <th>Метод</th>
-                        <th>Ставок</th>
-                        <th>Потрачено</th>
-                        <th>Выиграно</th>
-                        <th>ROI</th>
-                        <th>Прибыль</th>
-                    </tr>
-                </thead>
-                <tbody id="methodsStatsBody">
-                    <!-- Данные будут добавлены через JS -->
-                </tbody>
-            </table>
-            
-            <div id="winsDetails" class="wins-details"></div>
         </div>
-    </div>
 
-    <div class="custom-keyboard" id="customKeyboard">
-        <div class="keyboard-row">
-            <div class="keyboard-key">1</div>
-            <div class="keyboard-key">2</div>
-            <div class="keyboard-key">3</div>
-            <div class="keyboard-key">4</div>
-            <div class="keyboard-key">5</div>
-            <div class="keyboard-key">6</div>
-            <div class="keyboard-key">7</div>
-            <div class="keyboard-key">8</div>
-            <div class="keyboard-key">9</div>
-            <div class="keyboard-key wide red" id="keyDelete">⌫</div>
-        </div>
-        <div class="keyboard-row">
-            <div class="keyboard-key">0</div>
-            <div class="keyboard-key">,</div>
-            <div class="keyboard-key">|</div>
-            <div class="keyboard-key wide blue" id="keyDone">Готово</div>
+        <div class="custom-keyboard" id="customKeyboard">
+            <div class="keyboard-row">
+                <div class="keyboard-key">1</div>
+                <div class="keyboard-key">2</div>
+                <div class="keyboard-key">3</div>
+                <div class="keyboard-key">4</div>
+                <div class="keyboard-key">5</div>
+                <div class="keyboard-key">6</div>
+                <div class="keyboard-key">7</div>
+                <div class="keyboard-key">8</div>
+                <div class="keyboard-key">9</div>
+                <div class="keyboard-key wide red" id="keyDelete">⌫</div>
+            </div>
+            <div class="keyboard-row">
+                <div class="keyboard-key">0</div>
+                <div class="keyboard-key">,</div>
+                <div class="keyboard-key">|</div>
+                <div class="keyboard-key wide blue" id="keyDone">Готово</div>
+            </div>
         </div>
     </div>
 
@@ -837,20 +858,6 @@
     if (window.matchMedia('(display-mode: fullscreen)').matches) {
         document.documentElement.classList.add('pwa-mode');
     }
-
-    // --- БЛОКИРОВКА ПЕРЕМЕЩЕНИЯ ЭКРАНА ---
-    // Удаляем глобальную блокировку прокрутки
-    // Вместо нее будем блокировать прокрутку только при открытой клавиатуре
-    
-    // Блокировка масштабирования
-    let lastTouchTime = 0;
-    document.addEventListener('touchend', event => {
-        const now = new Date().getTime();
-        if (now - lastTouchTime < 300) {
-            event.preventDefault();
-        }
-        lastTouchTime = now;
-    }, { passive: false });
 
     // --- История ---
     let history = JSON.parse(localStorage.getItem('rapido2History') || '[]');
@@ -1071,7 +1078,7 @@
         hideKeyboard();
     };
 
-    // --- Добавление прогноза (ИСПРАВЛЕННЫЙ БЛОК) ---
+    // --- Добавление прогноза ---
     document.getElementById('addPredictionBtn').onclick = () => {
         const nums1 = Array.from(document.querySelectorAll('#field1 .number')).map(el => el.textContent);
         const num2 = document.querySelector('#field2 .number').textContent;
@@ -1854,26 +1861,19 @@
     document.getElementById('refreshStatsBtn').onclick = updateWinsStats;
     
     // Фикс для iPad Split View
-    function updateLayoutForSplitView() {
-        const isSplitView = window.innerWidth < 1024 && window.innerHeight < 768;
-        const container = document.querySelector('.container');
-        
-        if (isSplitView) {
-            container.style.maxHeight = `${window.innerHeight - 50}px`;
-            container.style.overflowY = 'auto';
-        } else {
-            container.style.maxHeight = '';
-            container.style.overflowY = '';
-        }
+    function lockViewport() {
+        const appContainer = document.querySelector('.app-container');
+        appContainer.style.width = window.innerWidth + 'px';
+        appContainer.style.height = window.innerHeight + 'px';
     }
     
     // Обновляем при ресайзе и при загрузке
-    window.addEventListener('resize', updateLayoutForSplitView);
-    window.addEventListener('orientationchange', updateLayoutForSplitView);
-    window.addEventListener('load', updateLayoutForSplitView);
+    window.addEventListener('resize', lockViewport);
+    window.addEventListener('orientationchange', lockViewport);
+    window.addEventListener('load', lockViewport);
     
     // Вызываем сразу после загрузки
-    setTimeout(updateLayoutForSplitView, 300);
+    setTimeout(lockViewport, 300);
 </script>
 </body>
 </html>

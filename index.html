@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
     <link rel="apple-touch-icon" sizes="180x180" href="icons/icon180.png">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="apple-mobile-web-app-title" content="RDS5">
+    <meta name="apple-mobile-web-app-title" content="RDS3">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <title>Рапидо Старт</title>
     <style>
@@ -68,6 +68,7 @@
             user-select: none;
             display: flex;
             flex-direction: column;
+            overflow: hidden;
         }
         .container {
             flex: 1;
@@ -75,6 +76,7 @@
             width: 100%;
             padding-bottom: 10px;
             -webkit-overflow-scrolling: touch;
+            overscroll-behavior: contain;
         }
         h1 {
             font-size: 1.5rem;
@@ -113,16 +115,16 @@
             margin: 8px 0;
         }
         .number {
-            width: 42px;
-            height: 42px;
-            border-radius: 21px;
+            width: 46px;
+            height: 46px;
+            border-radius: 23px;
             background: var(--primary-color);
             color: white;
             display: flex;
             align-items: center;
             justify-content: center;
             font-weight: bold;
-            font-size: 16px;
+            font-size: 18px;
             transition: transform 0.2s;
         }
         .number.selected {
@@ -131,7 +133,7 @@
         }
         .number.small {
             background: var(--secondary-color);
-            width: 42px;
+            width: 46px;
         }
         .number.special {
             background: var(--special-color);
@@ -141,15 +143,15 @@
         }
         button {
             width: 100%;
-            padding: 12px;
+            padding: 14px;
             background: var(--primary-color);
             color: white;
             border: none;
-            border-radius: 8px;
-            font-size: 16px;
+            border-radius: 10px;
+            font-size: 17px;
             font-weight: 500;
             cursor: pointer;
-            margin-top: 8px;
+            margin-top: 10px;
             outline: none;
         }
         button:active, button:focus {
@@ -161,12 +163,12 @@
         }
         #inputDisplay {
             width: 100%;
-            min-height: 80px;
+            min-height: 90px;
             border: 1px solid var(--border-color);
-            border-radius: 8px;
-            padding: 12px;
-            margin-bottom: 8px;
-            font-size: 16px;
+            border-radius: 10px;
+            padding: 14px;
+            margin-bottom: 10px;
+            font-size: 17px;
             background: var(--card-bg);
             color: var(--text-color);
             word-wrap: break-word;
@@ -180,8 +182,8 @@
         .stats-table {
             width: 100%;
             border-collapse: collapse;
-            margin-top: 5px;
-            font-size: 14px;
+            margin-top: 8px;
+            font-size: 15px;
         }
         .stats-table th, .stats-table td {
             padding: 8px;
@@ -197,23 +199,23 @@
             font-weight: bold;
         }
         .history-item {
-            padding: 10px 0;
+            padding: 12px 0;
             border-bottom: 1px solid var(--history-border);
-            font-size: 14px;
+            font-size: 15px;
             display: flex;
             justify-content: space-between;
             align-items: center;
         }
         .history-item button {
             width: auto;
-            padding: 4px 12px;
+            padding: 6px 14px;
             margin: 0;
             background: var(--secondary-color);
             color: white;
             border: none;
-            border-radius: 4px;
+            border-radius: 6px;
             cursor: pointer;
-            font-size: 14px;
+            font-size: 15px;
         }
         .custom-keyboard {
             position: fixed;
@@ -221,30 +223,30 @@
             left: 0;
             right: 0;
             background: var(--keyboard-bg);
-            padding: 10px;
+            padding: 12px;
             border-top: 1px solid var(--border-color);
             z-index: 1000;
             display: none;
             flex-direction: column;
-            gap: 8px;
+            gap: 10px;
             touch-action: manipulation;
             padding-bottom: env(safe-area-inset-bottom);
         }
         .keyboard-row {
             display: flex;
             justify-content: space-between;
-            gap: 8px;
+            gap: 10px;
         }
         .keyboard-key {
             flex: 1;
-            height: 54px;
+            height: 60px;
             background: var(--card-bg);
             border: 1px solid var(--border-color);
-            border-radius: 8px;
+            border-radius: 10px;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 22px;
+            font-size: 24px;
             font-weight: bold;
             cursor: pointer;
             user-select: none;
@@ -268,9 +270,9 @@
             position: fixed;
             top: 10px;
             right: 10px;
-            width: 44px;
-            height: 44px;
-            border-radius: 22px;
+            width: 48px;
+            height: 48px;
+            border-radius: 24px;
             background: var(--primary-color);
             color: white;
             display: flex;
@@ -280,28 +282,28 @@
             z-index: 1000;
             border: none;
             box-shadow: 0 2px 5px rgba(0,0,0,0.2);
-            font-size: 20px;
+            font-size: 22px;
         }
         .validation-error {
             color: var(--secondary-color);
             font-size: 14px;
-            margin-top: 5px;
+            margin-top: 8px;
             display: none;
         }
         .method-selector {
             display: flex;
             gap: 8px;
-            margin-bottom: 12px;
+            margin-bottom: 15px;
             flex-wrap: wrap;
         }
         .method-btn {
             flex: 1;
-            min-width: 80px;
-            padding: 10px 5px;
+            min-width: 85px;
+            padding: 12px 6px;
             text-align: center;
             background: var(--keyboard-bg);
-            border-radius: 8px;
-            font-size: 14px;
+            border-radius: 10px;
+            font-size: 15px;
             cursor: pointer;
             user-select: none;
         }
@@ -311,15 +313,15 @@
         }
         .info-icon {
             display: inline-block;
-            width: 18px;
-            height: 18px;
-            border-radius: 9px;
+            width: 20px;
+            height: 20px;
+            border-radius: 10px;
             background: var(--primary-color);
             color: white;
             text-align: center;
-            line-height: 18px;
-            font-size: 14px;
-            margin-left: 5px;
+            line-height: 20px;
+            font-size: 15px;
+            margin-left: 6px;
             cursor: help;
         }
         
@@ -328,12 +330,12 @@
             display: flex;
             justify-content: space-between;
             flex-wrap: wrap;
-            margin-top: 10px;
-            padding: 10px;
+            margin-top: 12px;
+            padding: 12px;
             background: var(--card-bg);
-            border-radius: 8px;
+            border-radius: 10px;
             box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-            gap: 10px;
+            gap: 12px;
         }
         .win-stat {
             text-align: center;
@@ -341,9 +343,9 @@
             min-width: 100px;
         }
         .win-stat-value {
-            font-size: 1.3rem;
+            font-size: 1.4rem;
             font-weight: bold;
-            margin-top: 5px;
+            margin-top: 8px;
         }
         .profit-positive {
             color: var(--selected-color);
@@ -354,39 +356,39 @@
         .wins-details {
             max-height: 300px;
             overflow-y: auto;
-            margin-top: 10px;
+            margin-top: 12px;
         }
         .win-item {
-            padding: 10px 0;
+            padding: 12px 0;
             border-bottom: 1px solid var(--history-border);
-            font-size: 14px;
+            font-size: 15px;
             display: flex;
             flex-wrap: wrap;
             justify-content: space-between;
-            gap: 5px;
+            gap: 6px;
         }
         .win-item > span {
             flex: 1;
-            min-width: 120px;
-            font-size: 14px;
+            min-width: 130px;
+            font-size: 15px;
         }
         
         /* Стили для истории */
         .history-header {
             display: flex;
             font-weight: bold;
-            padding: 8px 0;
+            padding: 10px 0;
             border-bottom: 2px solid var(--primary-color);
-            font-size: 14px;
+            font-size: 15px;
         }
         .history-row {
             display: flex;
-            padding: 10px 0;
+            padding: 12px 0;
             border-bottom: 1px solid var(--history-border);
-            font-size: 14px;
+            font-size: 15px;
         }
         .history-type {
-            width: 100px;
+            width: 110px;
             font-weight: bold;
         }
         .history-field {
@@ -394,7 +396,7 @@
             min-width: 0;
         }
         .history-field2 {
-            width: 50px;
+            width: 60px;
             text-align: center;
         }
         .history-actions {
@@ -427,11 +429,11 @@
         }
         
         .calc-details {
-            margin-top: 10px;
-            padding: 12px;
+            margin-top: 12px;
+            padding: 14px;
             background: var(--card-bg);
-            border-radius: 8px;
-            font-size: 14px;
+            border-radius: 10px;
+            font-size: 15px;
             display: none;
         }
         .calc-details.active {
@@ -439,9 +441,9 @@
         }
         .calc-title {
             font-weight: bold;
-            margin-bottom: 5px;
+            margin-bottom: 8px;
             color: var(--primary-color);
-            font-size: 16px;
+            font-size: 17px;
         }
         
         /* PWA режим */
@@ -449,22 +451,22 @@
             padding-bottom: calc(280px + env(safe-area-inset-bottom));
         }
         .pwa-mode .custom-keyboard {
-            padding-bottom: max(10px, env(safe-area-inset-bottom));
+            padding-bottom: max(12px, env(safe-area-inset-bottom));
         }
         
         /* Добавленные стили */
         .frequency-chart {
             display: flex;
             align-items: flex-end;
-            height: 140px;
+            height: 150px;
             margin: 15px 0;
-            gap: 3px;
+            gap: 4px;
             justify-content: center;
         }
         .frequency-bar {
-            width: 14px;
+            width: 16px;
             background: var(--primary-color);
-            border-radius: 4px 4px 0 0;
+            border-radius: 5px 5px 0 0;
             position: relative;
         }
         .frequency-bar.hot {
@@ -475,63 +477,63 @@
         }
         .frequency-label {
             position: absolute;
-            bottom: -22px;
+            bottom: -24px;
             left: 50%;
             transform: translateX(-50%);
-            font-size: 11px;
+            font-size: 12px;
         }
         .stats-advanced {
-            margin-top: 15px;
-            font-size: 14px;
+            margin-top: 18px;
+            font-size: 15px;
         }
         .cluster-row {
             display: flex;
             flex-wrap: wrap;
-            gap: 6px;
-            margin: 10px 0;
+            gap: 8px;
+            margin: 12px 0;
         }
         .cluster-title {
             font-weight: bold;
             width: 100%;
-            margin-top: 10px;
+            margin-top: 12px;
             color: var(--special-color);
-            font-size: 15px;
+            font-size: 16px;
         }
         .cluster-badge {
             background: var(--special-color);
             color: white;
-            padding: 3px 10px;
-            border-radius: 12px;
-            font-size: 13px;
-            margin-left: 5px;
+            padding: 4px 12px;
+            border-radius: 14px;
+            font-size: 14px;
+            margin-left: 6px;
         }
         .method-badge {
-            font-size: 12px;
+            font-size: 13px;
             background: var(--special-color);
             color: white;
-            padding: 3px 8px;
-            border-radius: 12px;
-            margin-left: 5px;
+            padding: 4px 10px;
+            border-radius: 14px;
+            margin-left: 6px;
         }
         
         /* Новые стили для статистики методов */
         .method-stats {
             width: 100%;
             border-collapse: collapse;
-            font-size: 14px;
-            margin-top: 10px;
+            font-size: 15px;
+            margin-top: 12px;
         }
         .method-stats th {
             background: var(--primary-color);
             color: white;
-            padding: 10px;
+            padding: 12px;
             text-align: left;
-            font-size: 14px;
+            font-size: 15px;
         }
         .method-stats td {
-            padding: 10px;
+            padding: 12px;
             border-bottom: 1px solid var(--history-border);
-            font-size: 14px;
+            font-size: 15px;
         }
         .method-stats tr:nth-child(even) {
             background-color: rgba(0,0,0,0.03);
@@ -552,34 +554,34 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-top: 20px;
+            margin-top: 24px;
         }
         .stats-title {
             color: var(--primary-color);
-            font-size: 1.1rem;
+            font-size: 1.2rem;
         }
         
         /* Адаптивность */
         @media (max-width: 480px) {
             .number {
-                width: 38px;
-                height: 38px;
-                font-size: 15px;
+                width: 42px;
+                height: 42px;
+                font-size: 16px;
             }
             
             .keyboard-key {
-                height: 50px;
-                font-size: 20px;
+                height: 55px;
+                font-size: 22px;
             }
             
             .stats-table th, 
             .stats-table td {
-                padding: 6px;
-                font-size: 13px;
+                padding: 8px;
+                font-size: 14px;
             }
             
             .history-type {
-                width: 80px;
+                width: 90px;
             }
             
             .history-field {
@@ -588,14 +590,14 @@
             
             .method-stats th,
             .method-stats td {
-                padding: 8px 5px;
-                font-size: 13px;
+                padding: 10px 6px;
+                font-size: 14px;
             }
             
             .method-btn {
-                min-width: 70px;
-                font-size: 13px;
-                padding: 8px 4px;
+                min-width: 75px;
+                font-size: 14px;
+                padding: 10px 5px;
             }
         }
     </style>
@@ -634,7 +636,7 @@
             </div>
             
             <button id="genBtn">Сгенерировать</button>
-            <button id="addPredictionBtn" style="margin-top: 5px; background: var(--selected-color)">Добавить прогноз</button>
+            <button id="addPredictionBtn" style="margin-top: 8px; background: var(--selected-color)">Добавить прогноз</button>
         </div>
         
         <div class="card">
@@ -698,7 +700,7 @@
             
             <div class="stats-header">
                 <div class="stats-title">Эффективность методов прогнозирования</div>
-                <button id="refreshStatsBtn" style="padding: 6px 12px; font-size: 14px;">Обновить</button>
+                <button id="refreshStatsBtn" style="padding: 8px 14px; font-size: 15px;">Обновить</button>
             </div>
             <table class="method-stats" id="methodsStats">
                 <thead>
@@ -765,6 +767,18 @@
         document.documentElement.classList.add('pwa-mode');
     }
 
+    // --- БЛОКИРОВКА ПЕРЕМЕЩЕНИЯ ЭКРАНА ---
+    document.addEventListener('touchmove', function(event) {
+        // Разрешаем прокрутку только внутри контейнера
+        if (!event.target.closest('.container')) {
+            event.preventDefault();
+        }
+    }, { passive: false });
+
+    document.addEventListener('gesturestart', e => e.preventDefault());
+    document.addEventListener('gesturechange', e => e.preventDefault());
+    document.addEventListener('gestureend', e => e.preventDefault());
+
     // Блокировка масштабирования
     let lastTouchTime = 0;
     document.addEventListener('touchend', event => {
@@ -774,9 +788,6 @@
         }
         lastTouchTime = now;
     }, { passive: false });
-
-    document.addEventListener('gesturestart', e => e.preventDefault());
-    document.addEventListener('gesturechange', e => e.preventDefault());
 
     // --- История ---
     let history = JSON.parse(localStorage.getItem('rapido2History') || '[]');

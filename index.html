@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="ru" style="height: 100%;">
+<html lang="ru">
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
@@ -22,6 +22,7 @@
             --selected-color: #34c759;
             --special-color: #af52de;
             --karnaugh-color: #ff9500;
+            --super-color: #ff3b30;
         }
 
         .dark-mode {
@@ -37,6 +38,7 @@
             --selected-color: #30d158;
             --special-color: #bf5af2;
             --karnaugh-color: #ff9f0a;
+            --super-color: #ff453a;
         }
 
         * {
@@ -63,13 +65,13 @@
         
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            padding: 10px;
             background: var(--bg-color);
             color: var(--text-color);
             -webkit-user-select: none;
             user-select: none;
             display: flex;
             flex-direction: column;
-            padding: 10px;
             overflow: hidden;
         }
         
@@ -169,6 +171,11 @@
         
         .number.karnaugh {
             background: var(--karnaugh-color);
+        }
+        
+        .number.super {
+            background: var(--super-color);
+            box-shadow: 0 0 10px rgba(255, 59, 48, 0.5);
         }
         
         button {
@@ -515,6 +522,22 @@
             font-size: 17px;
         }
         
+        .super-calc {
+            margin-top: 12px;
+            padding: 14px;
+            background: var(--card-bg);
+            border-radius: 10px;
+            font-size: 15px;
+            border: 2px solid var(--super-color);
+        }
+        
+        .super-title {
+            font-weight: bold;
+            margin-bottom: 8px;
+            color: var(--super-color);
+            font-size: 17px;
+        }
+        
         /* PWA режим */
         .pwa-mode .container {
             padding-bottom: calc(280px + env(safe-area-inset-bottom));
@@ -579,6 +602,15 @@
         
         .cluster-badge {
             background: var(--special-color);
+            color: white;
+            padding: 4px 12px;
+            border-radius: 14px;
+            font-size: 14px;
+            margin-left: 6px;
+        }
+        
+        .super-badge {
+            background: var(--super-color);
             color: white;
             padding: 4px 12px;
             border-radius: 14px;
@@ -708,7 +740,7 @@
                         <div class="method-btn" data-method="ogneva" tabindex="0">Огнева<span class="method-badge">ог</span></div>
                         <div class="method-btn" data-method="karnaugh" tabindex="0">Карнауха<span class="method-badge">ка</span></div>
                         <div class="method-btn" data-method="cluster" tabindex="0">Кластеризация<span class="method-badge">кл</span></div>
-                        <div class="method-btn" data-method="random" tabindex="0">Случайные<span class="method-badge">сл</span></div>
+                        <div class="method-btn" data-method="super" tabindex="0">Супер-прогноз<span class="super-badge">топ</span></div>
                     </div>
                     <p>Поле 1 (8 из 20):</p>
                     <div class="numbers" id="field1"></div>
@@ -723,6 +755,11 @@
                     <div id="clusterCalc" class="calc-details">
                         <div class="calc-title">Детали кластеризации:</div>
                         <div id="clusterDetails"></div>
+                    </div>
+                    
+                    <div id="superCalc" class="super-calc" style="display:none">
+                        <div class="super-title">Анализ супер-прогноза:</div>
+                        <div id="superDetails"></div>
                     </div>
                     
                     <button id="genBtn">Сгенерировать</button>
@@ -869,7 +906,7 @@
         'ogneva': 'ог',
         'karnaugh': 'ка',
         'cluster': 'кл',
-        'random': 'сл'
+        'super': 'топ'
     };
     
     // Текущий метод для метки
@@ -940,20 +977,14 @@
     // Текущее значение ввода
     let inputValue = '';
 
-    // Функция для отображения клавиатуры (PWA-совместимая)
+    // Функция для отображения клавиатуры
     function showKeyboard() {
         customKeyboard.style.display = 'flex';
         inputDisplay.classList.add('input-active');
         validationError.style.display = 'none';
         
-        // Устанавливаем состояние открытой клавиатуры
-        document.body.classList.add('keyboard-open');
-        document.body.style.overflow = 'hidden';
-        
-        // Фокус на скрытое поле для iOS в PWA режиме
         setTimeout(() => {
             fakeInput.focus();
-            // Прокручиваем к полю ввода
             inputDisplay.scrollIntoView({ 
                 behavior: 'smooth', 
                 block: 'center' 
@@ -964,10 +995,6 @@
     function hideKeyboard() {
         customKeyboard.style.display = 'none';
         inputDisplay.classList.remove('input-active');
-        
-        // Снимаем блокировку прокрутки
-        document.body.classList.remove('keyboard-open');
-        document.body.style.overflow = '';
     }
     
     function updateInputDisplay() {
@@ -994,7 +1021,6 @@
                 return;
             }
             
-            // Разрешаем цифры, запятую и вертикальную черту
             if(/[0-9,|]/.test(keyText)) {
                 inputValue += keyText;
                 updateInputDisplay();
@@ -1002,7 +1028,6 @@
         });
     });
 
-    // Обработчики событий для поля ввода (PWA-совместимые)
     inputDisplay.addEventListener('pointerdown', function(e) {
         if (e.pointerType === 'touch') {
             e.preventDefault();
@@ -1016,7 +1041,6 @@
     function validateInput(val) {
         validationError.style.display = 'none';
         
-        // Проверка формата
         if(!/^(\d+)\|(\d{1,2},){7}\d{1,2}\|\d{1,2}$/.test(val)) {
             validationError.textContent = 'Неверный формат. Пример: 158447|1,2,3,4,5,6,7,8|1';
             validationError.style.display = 'block';
@@ -1027,7 +1051,6 @@
         const nums1 = field1.split(',').map(n => parseInt(n));
         const num2 = parseInt(field2);
         
-        // Проверка диапазонов
         const invalid1 = nums1.filter(n => n < 1 || n > 20);
         if(invalid1.length > 0) {
             validationError.textContent = `Числа в поле 1 должны быть от 1 до 20. Ошибка: ${invalid1.join(', ')}`;
@@ -1041,7 +1064,6 @@
             return false;
         }
         
-        // Проверка дубликатов в поле 1
         const unique = new Set(nums1);
         if(unique.size !== 8) {
             validationError.textContent = 'В поле 1 не должно быть повторяющихся чисел';
@@ -1062,7 +1084,6 @@
         
         if(!validateInput(inputValue)) return;
         
-        // Проверка дубликатов в истории
         if(history.includes(inputValue)) {
             validationError.textContent = 'Эта комбинация уже есть в истории';
             validationError.style.display = 'block';
@@ -1088,11 +1109,9 @@
             return;
         }
         
-        // Создаем метку метода
         const methodAbbr = methodAbbreviations[currentMethodLabel] || '?';
         const prediction = `Прогноз (${methodAbbr})|${nums1.join(',')}|${num2}`;
         
-        // Проверка дубликатов ТОЛЬКО по числам (без учета метода)
         const numbersOnly = `${nums1.join(',')}|${num2}`;
         const isDuplicate = history.some(entry => {
             const parts = entry.split('|');
@@ -1109,7 +1128,6 @@
         saveHistory();
         renderHistory();
         
-        // Подсветка добавленного прогноза
         const lastRow = historyList.lastChild;
         lastRow.style.backgroundColor = 'var(--selected-color)';
         lastRow.style.transition = 'background-color 1s';
@@ -1122,12 +1140,10 @@
     const statsTable = document.getElementById('statsTable');
 
     function updateStats() {
-        // Считаем частоты для обоих полей (только по тиражам, не прогнозам)
         const countField1 = Array(20).fill(0);
         const countField2 = Array(4).fill(0);
 
         history.forEach(entry => {
-            // Пропускаем прогнозы
             if(entry.startsWith('Прогноз')) return;
             
             const parts = entry.split('|');
@@ -1156,7 +1172,6 @@
         }
         statsTable.innerHTML = html;
         
-        // Обновляем расширенный частотный анализ
         updateFrequencyAnalysis();
     }
     
@@ -1166,6 +1181,8 @@
     const karnaughCalc = document.getElementById('karnaughCalc');
     const clusterDetails = document.getElementById('clusterDetails');
     const clusterCalc = document.getElementById('clusterCalc');
+    const superDetails = document.getElementById('superDetails');
+    const superCalc = document.getElementById('superCalc');
     
     // Переключение методов
     document.querySelectorAll('.method-btn').forEach(btn => {
@@ -1173,11 +1190,11 @@
             document.querySelectorAll('.method-btn').forEach(b => b.classList.remove('active'));
             btn.classList.add('active');
             currentMethod = btn.dataset.method;
-            currentMethodLabel = currentMethod; // Сохраняем для метки
+            currentMethodLabel = currentMethod;
             
-            // Показываем/скрываем блок с расчетом для Карнауха
             karnaughCalc.classList.toggle('active', currentMethod === 'karnaugh');
             clusterCalc.classList.toggle('active', currentMethod === 'cluster');
+            superCalc.style.display = currentMethod === 'super' ? 'block' : 'none';
             
             generateNumbers();
         });
@@ -1198,8 +1215,8 @@
             case 'cluster':
                 generateClusterNumbers();
                 break;
-            case 'random':
-                generateRandomNumbers();
+            case 'super':
+                generateSuperPrediction();
                 break;
             default:
                 generateColdNumbers();
@@ -1212,7 +1229,6 @@
         const countField2 = Array(4).fill(0);
 
         history.forEach(entry => {
-            // Пропускаем прогнозы
             if(entry.startsWith('Прогноз')) return;
             
             const parts = entry.split('|');
@@ -1232,12 +1248,10 @@
             return;
         }
 
-        // Выбираем 8 самых редких чисел для первого поля
         let numbers1 = Array.from({ length: 20 }, (_, i) => i + 1);
         numbers1.sort((a, b) => countField1[a - 1] - countField1[b - 1]);
         const selected1 = numbers1.slice(0, 8).sort((a, b) => a - b);
 
-        // Для второго поля выбираем самое редкое число
         let numbers2 = Array.from({ length: 4 }, (_, i) => i + 1);
         numbers2.sort((a, b) => countField2[a - 1] - countField2[b - 1]);
         const selected2 = numbers2[0];
@@ -1245,7 +1259,7 @@
         displayNumbers(selected1, selected2, 'cold');
     }
     
-    // Метод Огнева (характеристическое число)
+    // Метод Огнева
     function generateOgnevaNumbers() {
         const draws = history.filter(e => !e.startsWith('Прогноз'));
         
@@ -1254,7 +1268,6 @@
             return;
         }
         
-        // Рассчитываем среднее характеристическое число
         let totalOgneva = 0;
         draws.forEach(entry => {
             const parts = entry.split('|');
@@ -1267,7 +1280,6 @@
         });
         const avgOgneva = totalOgneva / draws.length;
         
-        // Генерируем комбинации и выбираем лучшую
         let bestCombination = null;
         let bestDiff = Infinity;
         
@@ -1297,13 +1309,12 @@
         }
     }
     
-    // УЛУЧШЕННЫЙ метод Карнауха с математическими расчетами
+    // Метод Карнауха
     function generateKarnaughNumbers() {
         const countField1 = Array(20).fill(0);
         const countField2 = Array(4).fill(0);
 
         history.forEach(entry => {
-            // Пропускаем прогнозы
             if(entry.startsWith('Прогноз')) return;
             
             const parts = entry.split('|');
@@ -1324,25 +1335,17 @@
             return;
         }
         
-        // 1. Рассчитываем среднюю частоту выпадения
         const avgFrequency = draws / 20;
-        
-        // 2. Вычисляем отклонение для каждого числа
         const deviations = countField1.map(count => Math.abs(count - avgFrequency));
         
-        // 3. Ранжируем числа по степени "устойчивости" (наименьшее отклонение)
         let numbers1 = Array.from({ length: 20 }, (_, i) => i + 1);
         numbers1.sort((a, b) => deviations[a - 1] - deviations[b - 1]);
-        
-        // 4. Выбираем 8 самых "устойчивых" чисел
         const selected1 = numbers1.slice(0, 8).sort((a, b) => a - b);
         
-        // 5. Для второго поля используем медианное значение
         let numbers2 = Array.from({ length: 4 }, (_, i) => i + 1);
         numbers2.sort((a, b) => countField2[a - 1] - countField2[b - 1]);
         const selected2 = numbers2[Math.floor(numbers2.length / 2)];
         
-        // Формируем детали расчета
         let calcHTML = `
             <div><strong>Всего тиражей:</strong> ${draws}</div>
             <div><strong>Средняя частота:</strong> ${avgFrequency.toFixed(2)}</div>
@@ -1361,11 +1364,10 @@
         displayNumbers(selected1, selected2, 'karnaugh');
     }
     
-    // НОВЫЙ МЕТОД: КЛАСТЕРИЗАЦИЯ
+    // Кластеризация
     function generateClusterNumbers() {
         const countField1 = Array(20).fill(0);
         
-        // Считаем частоты выпадения чисел
         history.forEach(entry => {
             if(entry.startsWith('Прогноз')) return;
             const parts = entry.split('|');
@@ -1376,31 +1378,24 @@
             });
         });
 
-        // Если нет истории, используем случайную генерацию
         const draws = history.filter(e => !e.startsWith('Прогноз')).length;
         if(draws === 0) {
             generateRandomNumbers();
             return;
         }
 
-        // Создаем массив объектов {число, частота}
         let numbers = Array.from({ length: 20 }, (_, i) => ({ 
             num: i + 1, 
             count: countField1[i],
             cluster: -1
         }));
 
-        // Сортируем по частоте (по возрастанию)
         numbers.sort((a, b) => a.count - b.count);
 
-        // Определяем количество кластеров (3-5)
         const clusterCount = Math.min(5, Math.max(3, Math.floor(numbers.length / 4)));
-        
-        // K-means кластеризация (упрощенная версия)
         const centroids = [];
         const clusterSize = Math.floor(numbers.length / clusterCount);
         
-        // Инициализируем центроиды
         for(let i = 0; i < clusterCount; i++) {
             const idx = Math.floor(i * clusterSize + clusterSize / 2);
             centroids.push(numbers[idx].count);
@@ -1409,12 +1404,10 @@
         let changed = true;
         let iterations = 0;
         
-        // Алгоритм кластеризации
         while(changed && iterations < 20) {
             changed = false;
             iterations++;
             
-            // Принадлежность к кластерам
             numbers.forEach(item => {
                 let minDist = Infinity;
                 let bestCluster = -1;
@@ -1433,7 +1426,6 @@
                 }
             });
             
-            // Пересчет центроидов
             centroids.forEach((_, clusterIdx) => {
                 const clusterItems = numbers.filter(item => item.cluster === clusterIdx);
                 if(clusterItems.length > 0) {
@@ -1443,20 +1435,15 @@
             });
         }
         
-        // Формируем кластеры
         const clusters = {};
         numbers.forEach(item => {
             if(!clusters[item.cluster]) clusters[item.cluster] = [];
             clusters[item.cluster].push(item);
         });
         
-        // Для каждого кластера выбираем 1-2 числа с наименьшей частотой
         const selected1 = [];
         Object.values(clusters).forEach(cluster => {
-            // Сортируем внутри кластера по частоте
             cluster.sort((a, b) => a.count - b.count);
-            
-            // Выбираем от 1 до 2 чисел из кластера
             const toSelect = Math.min(2, Math.max(1, Math.ceil(cluster.length / 4)));
             for(let i = 0; i < toSelect; i++) {
                 if(cluster[i]) {
@@ -1465,12 +1452,10 @@
             }
         });
         
-        // Если выбрано слишком много чисел - случайно убираем лишние
         while(selected1.length > 8) {
             selected1.splice(Math.floor(Math.random() * selected1.length), 1);
         }
         
-        // Если выбрано слишком мало - добавляем случайные
         while(selected1.length < 8) {
             const randomNum = Math.floor(Math.random() * 20) + 1;
             if(!selected1.includes(randomNum)) {
@@ -1478,10 +1463,8 @@
             }
         }
         
-        // Сортируем результат
         selected1.sort((a, b) => a - b);
         
-        // Для второго поля используем самое редкое число
         const countField2 = Array(4).fill(0);
         history.forEach(entry => {
             if(entry.startsWith('Прогноз')) return;
@@ -1495,7 +1478,6 @@
         numbers2.sort((a, b) => countField2[a - 1] - countField2[b - 1]);
         const selected2 = numbers2[0];
         
-        // Формируем детали расчета
         let calcHTML = `<div><strong>Всего тиражей:</strong> ${draws}</div>`;
         calcHTML += `<div><strong>Количество кластеров:</strong> ${clusterCount}</div>`;
         calcHTML += `<div><strong>Центроиды:</strong> ${centroids.map(c => c.toFixed(2)).join(', ')}</div>`;
@@ -1516,21 +1498,218 @@
         displayNumbers(selected1, selected2, 'cluster');
     }
     
-    // РАСШИРЕННЫЙ ЧАСТОТНЫЙ АНАЛИЗ
-    function updateFrequencyAnalysis() {
-        const countField1 = Array(20).fill(0);
-        const drawCount = history.filter(e => !e.startsWith('Прогноз')).length;
+    // СУПЕР-ПРОГНОЗ: объединение всех методов
+    function generateSuperPrediction() {
+        const draws = history.filter(e => !e.startsWith('Прогноз'));
         
-        if(drawCount === 0) {
-            document.getElementById('meanValue').textContent = 'н/д';
-            document.getElementById('stdDevValue').textContent = 'н/д';
-            document.getElementById('hotNumbers').textContent = 'н/д';
-            document.getElementById('coldNumbers').textContent = 'н/д';
-            document.getElementById('frequencyChart').innerHTML = '';
+        if(draws.length < 15) {
+            alert('Для супер-прогноза нужно минимум 15 тиражей в истории');
+            generateClusterNumbers();
             return;
         }
         
-        // Считаем частоты
+        // Разделяем историю: 10 последних тиражей для теста, остальные для обучения
+        const testHistory = history.slice(-10);
+        const trainHistory = history.slice(0, -10);
+        
+        // Генерируем прогнозы разными методами
+        const methods = ['cold', 'ogneva', 'karnaugh', 'cluster'];
+        let predictions = [];
+        
+        // Временно подменяем историю для обучения
+        const originalHistory = [...history];
+        history = [...trainHistory];
+        
+        methods.forEach(method => {
+            switch(method) {
+                case 'cold': 
+                    predictions.push({method, ...generateColdNumbersInternal()});
+                    break;
+                case 'ogneva':
+                    predictions.push({method, ...generateOgnevaNumbersInternal()});
+                    break;
+                case 'karnaugh':
+                    predictions.push({method, ...generateKarnaughNumbersInternal()});
+                    break;
+                case 'cluster':
+                    predictions.push({method, ...generateClusterNumbersInternal()});
+                    break;
+            }
+        });
+        
+        // Восстанавливаем историю
+        history = [...originalHistory];
+        
+        // Оцениваем каждый прогноз на тестовых данных
+        let bestPrediction = null;
+        let bestScore = -Infinity;
+        let evaluationDetails = "<div><strong>Оценка прогнозов:</strong></div>";
+        
+        predictions.forEach(pred => {
+            let totalScore = 0;
+            let methodDetails = `<div><b>${methodAbbreviations[pred.method]}</b>: `;
+            
+            testHistory.forEach(entry => {
+                if (!entry.startsWith('Прогноз')) {
+                    const parts = entry.split('|');
+                    if (parts.length !== 3) return;
+                    
+                    const drawNums1 = parts[1].split(',').map(Number);
+                    const drawNum2 = parseInt(parts[2]);
+                    
+                    // Считаем совпадения
+                    let matches1 = 0;
+                    pred.nums1.forEach(n => {
+                        if (drawNums1.includes(n)) matches1++;
+                    });
+                    
+                    const match2 = pred.num2 === drawNum2 ? 1 : 0;
+                    
+                    // Система оценки: 
+                    // - Каждое совпадение в поле 1: 10 баллов
+                    // - Совпадение в поле 2: 50 баллов
+                    // - Бонусы за выигрышные комбинации
+                    let score = matches1 * 10 + (match2 * 50);
+                    
+                    // Бонусы за комбинации
+                    if (matches1 >= 5) score += 100;
+                    if (matches1 >= 6) score += 300;
+                    if (matches1 >= 7) score += 1000;
+                    if (matches1 === 8) score += 5000;
+                    
+                    totalScore += score;
+                    methodDetails += `${matches1}|${match2} (${score}), `;
+                }
+            });
+            
+            methodDetails = methodDetails.slice(0, -2) + ` → ${totalScore} баллов</div>`;
+            evaluationDetails += methodDetails;
+            
+            if (totalScore > bestScore) {
+                bestScore = totalScore;
+                bestPrediction = pred;
+            }
+        });
+        
+        // Формируем детали расчета
+        let superHTML = `<div>На основе ${draws.length} тиражей (10 для теста, ${draws.length-10} для обучения)</div>`;
+        superHTML += evaluationDetails;
+        superHTML += `<div><strong>Лучший метод:</strong> ${methodAbbreviations[bestPrediction.method]} (${bestScore} баллов)</div>`;
+        superHTML += `<div><strong>Выбранные числа:</strong> ${bestPrediction.nums1.join(', ')} | ${bestPrediction.num2}</div>`;
+        
+        superDetails.innerHTML = superHTML;
+        
+        displayNumbers(bestPrediction.nums1, bestPrediction.num2, 'super');
+    }
+    
+    // Внутренние функции генерации для супер-прогноза
+    function generateColdNumbersInternal() {
+        const countField1 = Array(20).fill(0);
+        const countField2 = Array(4).fill(0);
+
+        history.forEach(entry => {
+            if(entry.startsWith('Прогноз')) return;
+            
+            const parts = entry.split('|');
+            if(parts.length !== 3) return;
+            
+            const nums1 = parts[1].split(',').map(n => parseInt(n));
+            const num2 = parseInt(parts[2]);
+
+            nums1.forEach(n => {
+                if(n >= 1 && n <= 20) countField1[n - 1]++;
+            });
+            if(num2 >= 1 && num2 <= 4) countField2[num2 - 1]++;
+        });
+
+        let numbers1 = Array.from({ length: 20 }, (_, i) => i + 1);
+        numbers1.sort((a, b) => countField1[a - 1] - countField1[b - 1]);
+        const nums1 = numbers1.slice(0, 8).sort((a, b) => a - b);
+
+        let numbers2 = Array.from({ length: 4 }, (_, i) => i + 1);
+        numbers2.sort((a, b) => countField2[a - 1] - countField2[b - 1]);
+        const num2 = numbers2[0];
+
+        return { nums1, num2 };
+    }
+    
+    function generateOgnevaNumbersInternal() {
+        const draws = history.filter(e => !e.startsWith('Прогноз'));
+        
+        let totalOgneva = 0;
+        draws.forEach(entry => {
+            const parts = entry.split('|');
+            if(parts.length !== 3) return;
+            
+            const nums1 = parts[1].split(',').map(Number);
+            const num2 = parseInt(parts[2]);
+            const sum1 = nums1.reduce((a, b) => a + b, 0);
+            totalOgneva += sum1 * num2;
+        });
+        const avgOgneva = totalOgneva / draws.length;
+        
+        let bestCombination = null;
+        let bestDiff = Infinity;
+        
+        for(let i = 0; i < 50; i++) {
+            const nums1 = [];
+            while(nums1.length < 8) {
+                const n = Math.floor(Math.random() * 20) + 1;
+                if(!nums1.includes(n)) nums1.push(n);
+            }
+            nums1.sort((a, b) => a - b);
+            const num2 = Math.floor(Math.random() * 4) + 1;
+            
+            const sum1 = nums1.reduce((a, b) => a + b, 0);
+            const ogneva = sum1 * num2;
+            const diff = Math.abs(ogneva - avgOgneva);
+            
+            if(diff < bestDiff) {
+                bestDiff = diff;
+                bestCombination = { nums1, num2 };
+            }
+        }
+        
+        return bestCombination || { nums1: [1,2,3,4,5,6,7,8], num2: 1 };
+    }
+    
+    function generateKarnaughNumbersInternal() {
+        const countField1 = Array(20).fill(0);
+        const countField2 = Array(4).fill(0);
+
+        history.forEach(entry => {
+            if(entry.startsWith('Прогноз')) return;
+            
+            const parts = entry.split('|');
+            if(parts.length !== 3) return;
+            
+            const nums1 = parts[1].split(',').map(n => parseInt(n));
+            const num2 = parseInt(parts[2]);
+
+            nums1.forEach(n => {
+                if(n >= 1 && n <= 20) countField1[n - 1]++;
+            });
+            if(num2 >= 1 && num2 <= 4) countField2[num2 - 1]++;
+        });
+
+        const draws = history.filter(e => !e.startsWith('Прогноз')).length;
+        const avgFrequency = draws / 20;
+        const deviations = countField1.map(count => Math.abs(count - avgFrequency));
+        
+        let numbers1 = Array.from({ length: 20 }, (_, i) => i + 1);
+        numbers1.sort((a, b) => deviations[a - 1] - deviations[b - 1]);
+        const nums1 = numbers1.slice(0, 8).sort((a, b) => a - b);
+        
+        let numbers2 = Array.from({ length: 4 }, (_, i) => i + 1);
+        numbers2.sort((a, b) => countField2[a - 1] - countField2[b - 1]);
+        const num2 = numbers2[Math.floor(numbers2.length / 2)];
+        
+        return { nums1, num2 };
+    }
+    
+    function generateClusterNumbersInternal() {
+        const countField1 = Array(20).fill(0);
+        
         history.forEach(entry => {
             if(entry.startsWith('Прогноз')) return;
             const parts = entry.split('|');
@@ -1540,68 +1719,102 @@
                 if(n >= 1 && n <= 20) countField1[n - 1]++;
             });
         });
+
+        let numbers = Array.from({ length: 20 }, (_, i) => ({ 
+            num: i + 1, 
+            count: countField1[i],
+            cluster: -1
+        }));
+
+        numbers.sort((a, b) => a.count - b.count);
+
+        const clusterCount = Math.min(5, Math.max(3, Math.floor(numbers.length / 4)));
+        const centroids = [];
+        const clusterSize = Math.floor(numbers.length / clusterCount);
         
-        // Рассчитываем среднее значение
-        const mean = countField1.reduce((a, b) => a + b, 0) / countField1.length;
-        document.getElementById('meanValue').textContent = mean.toFixed(2);
+        for(let i = 0; i < clusterCount; i++) {
+            const idx = Math.floor(i * clusterSize + clusterSize / 2);
+            centroids.push(numbers[idx].count);
+        }
         
-        // Рассчитываем стандартное отклонение
-        const variance = countField1.reduce((acc, count) => {
-            return acc + Math.pow(count - mean, 2);
-        }, 0) / countField1.length;
+        let changed = true;
+        let iterations = 0;
         
-        const stdDev = Math.sqrt(variance);
-        document.getElementById('stdDevValue').textContent = stdDev.toFixed(2);
+        while(changed && iterations < 20) {
+            changed = false;
+            iterations++;
+            
+            numbers.forEach(item => {
+                let minDist = Infinity;
+                let bestCluster = -1;
+                
+                centroids.forEach((centroid, clusterIdx) => {
+                    const dist = Math.abs(item.count - centroid);
+                    if(dist < minDist) {
+                        minDist = dist;
+                        bestCluster = clusterIdx;
+                    }
+                });
+                
+                if(item.cluster !== bestCluster) {
+                    changed = true;
+                    item.cluster = bestCluster;
+                }
+            });
+            
+            centroids.forEach((_, clusterIdx) => {
+                const clusterItems = numbers.filter(item => item.cluster === clusterIdx);
+                if(clusterItems.length > 0) {
+                    const sum = clusterItems.reduce((acc, item) => acc + item.count, 0);
+                    centroids[clusterIdx] = sum / clusterItems.length;
+                }
+            });
+        }
         
-        // Определяем горячие и холодные числа
-        const hotNumbers = [];
-        const coldNumbers = [];
+        const clusters = {};
+        numbers.forEach(item => {
+            if(!clusters[item.cluster]) clusters[item.cluster] = [];
+            clusters[item.cluster].push(item);
+        });
         
-        countField1.forEach((count, index) => {
-            if(count > mean + stdDev * 0.5) {
-                hotNumbers.push(index + 1);
-            } else if(count < mean - stdDev * 0.5) {
-                coldNumbers.push(index + 1);
+        const nums1 = [];
+        Object.values(clusters).forEach(cluster => {
+            cluster.sort((a, b) => a.count - b.count);
+            const toSelect = Math.min(2, Math.max(1, Math.ceil(cluster.length / 4)));
+            for(let i = 0; i < toSelect; i++) {
+                if(cluster[i]) {
+                    nums1.push(cluster[i].num);
+                }
             }
         });
         
-        document.getElementById('hotNumbers').textContent = hotNumbers.join(', ') || 'нет';
-        document.getElementById('coldNumbers').textContent = coldNumbers.join(', ') || 'нет';
+        while(nums1.length > 8) {
+            nums1.splice(Math.floor(Math.random() * nums1.length), 1);
+        }
         
-        // Строим график
-        const chart = document.getElementById('frequencyChart');
-        chart.innerHTML = '';
-        
-        const maxCount = Math.max(...countField1);
-        const minCount = Math.min(...countField1);
-        const range = maxCount - minCount || 1;
-        
-        countField1.forEach((count, index) => {
-            const bar = document.createElement('div');
-            bar.className = 'frequency-bar';
-            
-            // Определяем тип числа (горячее/холодное)
-            if(count > mean + stdDev * 0.5) {
-                bar.classList.add('hot');
-            } else if(count < mean - stdDev * 0.5) {
-                bar.classList.add('cold');
+        while(nums1.length < 8) {
+            const randomNum = Math.floor(Math.random() * 20) + 1;
+            if(!nums1.includes(randomNum)) {
+                nums1.push(randomNum);
             }
-            
-            // Высота столбца (нормализация)
-            const heightPercent = 10 + 90 * (count - minCount) / range;
-            bar.style.height = `${heightPercent}%`;
-            
-            // Подпись числа
-            const label = document.createElement('div');
-            label.className = 'frequency-label';
-            label.textContent = index + 1;
-            
-            // Тултип с частотой
-            bar.title = `Число ${index+1}: ${count} раз (${count > mean ? 'горячее' : 'холодное'})`;
-            
-            bar.appendChild(label);
-            chart.appendChild(bar);
+        }
+        
+        nums1.sort((a, b) => a - b);
+        
+        const countField2 = Array(4).fill(0);
+        history.forEach(entry => {
+            if(entry.startsWith('Прогноз')) return;
+            const parts = entry.split('|');
+            if(parts.length !== 3) return;
+            const num2 = parseInt(parts[2]);
+            if(num2 >= 1 && num2 <= 4) countField2[num2 - 1]++;
         });
+        
+        let numbers2 = Array.from({ length: 4 }, (_, i) => i + 1);
+        numbers2.sort((a, b) => countField2[a - 1] - countField2[b - 1]);
+        const num2 = numbers2[0];
+        
+        return { nums1, num2 };
     }
     
     // Случайная генерация
@@ -1628,18 +1841,10 @@
             const div = document.createElement('div');
             div.className = 'number';
             
-            // Специальное оформление для метода Карнауха
-            if(method === 'karnaugh') {
-                div.classList.add('karnaugh');
-            }
-            // Для кластеризации
-            else if(method === 'cluster') {
-                div.classList.add('special');
-            }
-            // Для других методов используем стандартное оформление
-            else if(method === 'ogneva') {
-                div.classList.add('special');
-            }
+            if(method === 'karnaugh') div.classList.add('karnaugh');
+            else if(method === 'cluster') div.classList.add('special');
+            else if(method === 'ogneva') div.classList.add('special');
+            else if(method === 'super') div.classList.add('super');
             
             div.textContent = n;
             field1.appendChild(div);
@@ -1648,16 +1853,13 @@
         const div2 = document.createElement('div');
         div2.className = 'number small';
         
-        if(method === 'karnaugh') {
-            div2.classList.add('karnaugh');
-        } else if(method === 'ogneva' || method === 'cluster') {
-            div2.classList.add('special');
-        }
+        if(method === 'karnaugh') div2.classList.add('karnaugh');
+        else if(method === 'ogneva' || method === 'cluster') div2.classList.add('special');
+        else if(method === 'super') div2.classList.add('super');
         
         div2.textContent = num2;
         field2.appendChild(div2);
         
-        // Анимация выбора
         setTimeout(() => {
             field1.querySelectorAll('.number').forEach(el => {
                 el.classList.add('selected');
@@ -1666,176 +1868,13 @@
         }, 100);
     }
     
-    // Функция для расчета выигрыша по совпадениям
-    function calculateWin(matches1, match2) {
-        if (matches1 === 8 && match2 === 1) return "Суперприз";
-        if (matches1 === 8 && match2 === 0) return 25000;
-        if (matches1 === 7 && match2 === 1) return 5000;
-        if (matches1 === 7 && match2 === 0) return 1000;
-        if (matches1 === 6 && match2 === 1) return 175;
-        if (matches1 === 6 && match2 === 0) return 150;
-        if (matches1 === 5 && match2 === 1) return 100;
-        if (matches1 === 5 && match2 === 0) return 50;
-        return 0;
-    }
-    
-    // Функция для получения полного названия метода по сокращению
-    function getMethodName(abbr) {
-        const names = {
-            'хо': 'Холодные',
-            'ог': 'Огнева',
-            'ка': 'Карнауха',
-            'кл': 'Кластеризация',
-            'сл': 'Случайные'
-        };
-        return names[abbr] || abbr;
-    }
-
-    // --- Обновленная статистика выигрышей с анализом методов ---
-    function updateWinsStats() {
-        const totalBets = history.filter(e => e.startsWith('Прогноз')).length;
-        const totalSpent = totalBets * 50;
-        let totalWon = 0;
-        let winsDetailsHTML = "";
-        
-        // Сбор статистики по методам
-        const methodsStats = {
-            'хо': { bets: 0, spent: 0, won: 0, profit: 0 },
-            'ог': { bets: 0, spent: 0, won: 0, profit: 0 },
-            'ка': { bets: 0, spent: 0, won: 0, profit: 0 },
-            'кл': { bets: 0, spent: 0, won: 0, profit: 0 },
-            'сл': { bets: 0, spent: 0, won: 0, profit: 0 }
-        };
-        
-        // Рассчитываем выигрыши для каждого прогноза
-        for (let i = 0; i < history.length; i++) {
-            const entry = history[i];
-            
-            // Работаем только с прогнозами
-            if (!entry.startsWith('Прогноз')) continue;
-            
-            const parts = entry.split('|');
-            if (parts.length < 3) continue;
-            
-            // ИСПРАВЛЕНИЕ: Правильно извлекаем метод
-            const methodMatch = parts[0].match(/\(([а-яё]+)\)/i);
-            const methodAbbr = methodMatch ? methodMatch[1] : '?';
-            
-            // Если метод не инициализирован - инициализируем
-            if (!methodsStats[methodAbbr]) {
-                methodsStats[methodAbbr] = { bets: 0, spent: 0, won: 0, profit: 0 };
-            }
-            
-            const userNums1 = parts[1].split(',').map(Number);
-            const userNum2 = parseInt(parts[2]);
-            
-            // Увеличиваем счетчик ставок ДЛЯ КОНКРЕТНОГО МЕТОДА
-            methodsStats[methodAbbr].bets++;
-            methodsStats[methodAbbr].spent += 50;
-            
-            // Ищем следующий тираж после прогноза
-            let nextDraw = null;
-            for (let j = i + 1; j < history.length; j++) {
-                if (!history[j].startsWith('Прогноз')) {
-                    nextDraw = history[j];
-                    break;
-                }
-            }
-            
-            if (!nextDraw) continue;
-            
-            const [drawId, drawField1, drawField2] = nextDraw.split('|');
-            const drawNums1 = drawField1.split(',').map(Number);
-            const drawNum2 = parseInt(drawField2);
-            
-            // Считаем совпадения
-            let matches1 = 0;
-            for (const num of userNums1) {
-                if (drawNums1.includes(num)) matches1++;
-            }
-            const match2 = userNum2 === drawNum2 ? 1 : 0;
-            
-            // Рассчитываем выигрыш
-            const win = calculateWin(matches1, match2);
-            const winAmount = typeof win === "number" ? win : 0;
-            
-            // Обновляем общую статистику
-            totalWon += winAmount;
-            
-            // Обновляем статистику метода
-            methodsStats[methodAbbr].won += winAmount;
-            methodsStats[methodAbbr].profit += (winAmount - 50);
-            
-            // Формируем детализацию
-            winsDetailsHTML += `<div class="win-item">
-                <span>${parts[0]}</span>
-                <span>Тираж: ${drawField1} | ${drawNum2}</span>
-                <span>Совпадения: ${matches1}|${match2}</span>
-                <span>${typeof win === "string" ? win : win + " руб"}</span>
-            </div>`;
-        }
-        
-        // Обновляем DOM для общей статистики
-        document.getElementById("totalBets").textContent = totalBets;
-        document.getElementById("totalSpent").textContent = `${totalSpent} руб`;
-        document.getElementById("totalWon").textContent = `${totalWon} руб`;
-        
-        const balance = totalWon - totalSpent;
-        const balanceElem = document.getElementById("balance");
-        balanceElem.textContent = `${balance} руб`;
-        balanceElem.className = `win-stat-value ${balance >= 0 ? "profit-positive" : "profit-negative"}`;
-        
-        document.getElementById("winsDetails").innerHTML = winsDetailsHTML || 
-            "<p>Нет данных для расчета. Добавьте прогнозы и тиражи.</p>";
-        
-        // Обновляем DOM для статистики методов
-        const methodsStatsBody = document.getElementById('methodsStatsBody');
-        methodsStatsBody.innerHTML = '';
-        
-        // Фильтруем методы, по которым есть данные
-        const methodsWithData = Object.entries(methodsStats).filter(([_, data]) => data.bets > 0);
-        
-        if (methodsWithData.length === 0) {
-            methodsStatsBody.innerHTML = `
-                <tr>
-                    <td colspan="6" style="text-align: center; padding: 20px;">
-                        Нет данных для отображения. Добавьте прогнозы и тиражи.
-                    </td>
-                </tr>
-            `;
-            return;
-        }
-        
-        // Сортируем методы по количеству ставок
-        methodsWithData.sort((a, b) => b[1].bets - a[1].bets);
-        
-        methodsWithData.forEach(([methodAbbr, data]) => {
-            const roi = data.spent > 0 ? ((data.won / data.spent) * 100) : 0;
-            
-            const row = document.createElement('tr');
-            row.innerHTML = `
-                <td>${getMethodName(methodAbbr)}</td>
-                <td>${data.bets}</td>
-                <td>${data.spent} руб</td>
-                <td>${data.won} руб</td>
-                <td class="roi-cell ${roi >= 100 ? 'roi-positive' : 'roi-negative'}">
-                    ${roi.toFixed(1)}%
-                </td>
-                <td class="${data.profit >= 0 ? 'profit-positive' : 'profit-negative'}">
-                    ${data.profit} руб
-                </td>
-            `;
-            methodsStatsBody.appendChild(row);
-        });
-    }
-
     // --- Инициализация при загрузке ---
     document.getElementById('genBtn').onclick = generateNumbers;
     updateStats();
     updateWinsStats();
     generateNumbers();
     
-    // Обработчики для всех кнопок (для PWA режима)
+    // Обработчики для всех кнопок
     document.querySelectorAll('button').forEach(button => {
         button.addEventListener('pointerdown', () => {
             button.classList.add('active');
@@ -1848,7 +1887,7 @@
     // Инициализация ввода
     updateInputDisplay();
     
-    // iOS PWA фикс: перефокусировка при возвращении на страницу
+    // iOS PWA фикс
     document.addEventListener('visibilitychange', () => {
         if (document.visibilityState === 'visible' && customKeyboard.style.display === 'flex') {
             setTimeout(() => {
@@ -1867,12 +1906,10 @@
         appContainer.style.height = window.innerHeight + 'px';
     }
     
-    // Обновляем при ресайзе и при загрузке
     window.addEventListener('resize', lockViewport);
     window.addEventListener('orientationchange', lockViewport);
     window.addEventListener('load', lockViewport);
     
-    // Вызываем сразу после загрузки
     setTimeout(lockViewport, 300);
 </script>
 </body>

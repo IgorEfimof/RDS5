@@ -52,25 +52,23 @@
             height: 100%;
             margin: 0;
             padding: 0;
-            overflow: hidden; /* Разрешаем скролл только внутри контейнера */
+            overflow: hidden;
         }
         
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            padding: 10px;
             background: var(--bg-color);
             color: var(--text-color);
             -webkit-user-select: none;
             user-select: none;
             display: flex;
             flex-direction: column;
-            position: relative;
-        }
-        
-        body.keyboard-open {
-            position: fixed;
-            width: 100%;
-            height: 100%;
-            overflow: hidden;
+            position: absolute; /* Изменено с relative на absolute */
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
         }
         
         .container {
@@ -672,23 +670,6 @@
                 font-size: 14px;
                 padding: 10px 5px;
             }
-/* --- Фиксация интерфейса и адаптация под iPad --- */
-body {
-    padding: 0 !important; /* Убираем внутренний отступ у body */
-}
-.container {
-    width: 100vw !important;   /* Растягиваем контейнер на всю ширину экрана */
-    min-height: 0 !important;  /* Для корректного flex на iPad */
-    padding-left: 12px;
-    padding-right: 12px;
-}
-@media (min-width: 768px) and (max-width: 1024px) {
-    .container {
-        max-width: 800px;
-        margin: 0 auto;
-        padding-left: 24px;
-        padding-right: 24px;
-    }
         }
     </style>
 </head>
@@ -1871,6 +1852,28 @@ body {
     
     // Обработчик кнопки обновления статистики
     document.getElementById('refreshStatsBtn').onclick = updateWinsStats;
+    
+    // Фикс для iPad Split View
+    function updateLayoutForSplitView() {
+        const isSplitView = window.innerWidth < 1024 && window.innerHeight < 768;
+        const container = document.querySelector('.container');
+        
+        if (isSplitView) {
+            container.style.maxHeight = `${window.innerHeight - 50}px`;
+            container.style.overflowY = 'auto';
+        } else {
+            container.style.maxHeight = '';
+            container.style.overflowY = '';
+        }
+    }
+    
+    // Обновляем при ресайзе и при загрузке
+    window.addEventListener('resize', updateLayoutForSplitView);
+    window.addEventListener('orientationchange', updateLayoutForSplitView);
+    window.addEventListener('load', updateLayoutForSplitView);
+    
+    // Вызываем сразу после загрузки
+    setTimeout(updateLayoutForSplitView, 300);
 </script>
 </body>
 </html>

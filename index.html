@@ -897,7 +897,7 @@
     }
 
     // --- История ---
-    let history = JSON.parse(localStorage.getItem('rapido2History') || '[]');
+    let history = JSON.parse(localStorage.getItem('rapidoHistory') || '[]');
     if (!Array.isArray(history)) history = [];
     
     // Словарь сокращений для методов
@@ -916,6 +916,11 @@
     const historyList = document.getElementById('historyList');
     function renderHistory() {
         historyList.innerHTML = '';
+        if (history.length === 0) {
+            historyList.innerHTML = '<div class="history-row" style="justify-content: center; padding: 20px;">История пуста</div>';
+            return;
+        }
+        
         history.forEach((entry, idx) => {
             const parts = entry.split('|');
             const type = parts[0];
@@ -939,7 +944,7 @@
     renderHistory();
     
     // Удаление записи
-    historyList.addEventListener('pointerup', e => {
+    historyList.addEventListener('click', e => {
         if(e.target.tagName === 'BUTTON') {
             const idx = +e.target.dataset.idx;
             history.splice(idx, 1);
@@ -951,7 +956,7 @@
     });
     
     // Очистка истории
-    document.getElementById('clearHistoryBtn').onclick = () => {
+    document.getElementById('clearHistoryBtn').addEventListener('click', () => {
         if(confirm('Очистить всю историю?')) {
             history = [];
             saveHistory();
@@ -960,10 +965,11 @@
             updateWinsStats();
             generateNumbers();
         }
-    };
+    });
 
     function saveHistory() {
-        localStorage.setItem('rapido2History', JSON.stringify(history));
+        localStorage.setItem('rapidoHistory', JSON.stringify(history));
+        updateStats();
         updateWinsStats();
         updateFrequencyAnalysis();
     }
@@ -1041,7 +1047,7 @@
     function validateInput(val) {
         validationError.style.display = 'none';
         
-        if(!/^(\d+)\|(\d{1,2},){7}\d{1,2}\|\d{1,2}$/.test(val)) {
+        if(!/^\d+\|\d{1,2}(?:,\d{1,2}){7}\|\d{1,2}$/.test(val)) {
             validationError.textContent = 'Неверный формат. Пример: 158447|1,2,3,4,5,6,7,8|1';
             validationError.style.display = 'block';
             return false;
@@ -1075,7 +1081,7 @@
     }
 
     // --- Добавление в историю ---
-    document.getElementById('addHistoryBtn').onclick = () => {
+    document.getElementById('addHistoryBtn').addEventListener('click', () => {
         if(!inputValue) {
             validationError.textContent = 'Введите числа в формат: номер_тиража|1,2,3,4,5,6,7,8|1';
             validationError.style.display = 'block';
@@ -1093,14 +1099,13 @@
         history.push(inputValue);
         saveHistory();
         renderHistory();
-        updateStats();
         inputValue = '';
         updateInputDisplay();
         hideKeyboard();
-    };
+    });
 
     // --- Добавление прогноза ---
-    document.getElementById('addPredictionBtn').onclick = () => {
+    document.getElementById('addPredictionBtn').addEventListener('click', () => {
         const nums1 = Array.from(document.querySelectorAll('#field1 .number')).map(el => el.textContent);
         const num2 = document.querySelector('#field2 .number').textContent;
         
@@ -1134,7 +1139,7 @@
         setTimeout(() => {
             lastRow.style.backgroundColor = '';
         }, 1000);
-    };
+    });
 
     // --- Статистика ---
     const statsTable = document.getElementById('statsTable');
@@ -1186,7 +1191,7 @@
     
     // Переключение методов
     document.querySelectorAll('.method-btn').forEach(btn => {
-        btn.addEventListener('pointerdown', () => {
+        btn.addEventListener('click', () => {
             document.querySelectorAll('.method-btn').forEach(b => b.classList.remove('active'));
             btn.classList.add('active');
             currentMethod = btn.dataset.method;
@@ -1868,8 +1873,76 @@
         }, 100);
     }
     
+    // --- Частотный анализ ---
+    function updateFrequencyAnalysis() {
+        const countField1 = Array(20).fill(0);
+        const draws = history.filter(e => !e.startsWith('Прогноз')).length;
+        
+        if(draws === 0) {
+            document.getElementById('meanValue').textContent = 'н/д';
+            document.getElementById('stdDevValue').textContent = 'н/д';
+            document.getElementById('hotNumbers').textContent = 'н/д';
+            document.getElementById('coldNumbers').textContent = 'н/д';
+            document.getElementById('frequencyChart').innerHTML = '';
+            return;
+        }
+        
+        history.forEach(entry => {
+            if(entry.startsWith('Прогноз')) return;
+            const parts = entry.split('|');
+            if(parts.length !== 3) return;
+            const nums1 = parts[1].split(',').map(n => parseInt(n));
+            nums1.forEach(n => {
+                if(n >= 1 && n <= 20) countField1[n - 1]++;
+            });
+        });
+        
+        // Рассчитываем среднее и стандартное отклонение
+        const mean = countField1.reduce((sum, count) => sum + count, 0) / 20;
+        const variance = countField1.reduce((sum, count) => sum + Math.pow(count - mean, 2), 0) / 20;
+        const stdDev = Math.sqrt(variance);
+        
+        document.getElementById('meanValue').textContent = mean.toFixed(2);
+        document.getElementById('stdDevValue').textContent = stdDev.toFixed(2);
+        
+        // Определяем горячие и холодные числа
+        const hotNumbers = [];
+        const coldNumbers = [];
+        
+        countField1.forEach((count, i) => {
+            if(count > mean) hotNumbers.push(i + 1);
+            if(count < mean) coldNumbers.push(i + 1);
+        });
+        
+        document.getElementById('hotNumbers').textContent = hotNumbers.join(', ');
+        document.getElementById('coldNumbers').textContent = coldNumbers.join(', ');
+        
+        // Строим график
+        const maxCount = Math.max(...countField1);
+        const chart = document.getElementById('frequencyChart');
+        chart.innerHTML = '';
+        
+        countField1.forEach((count, i) => {
+            const barHeight = maxCount > 0 ? (count / maxCount * 100) : 0;
+            const bar = document.createElement('div');
+            bar.className = `frequency-bar ${count > mean ? 'hot' : 'cold'}`;
+            bar.style.height = `${barHeight}%`;
+            bar.innerHTML = `<div class="frequency-label">${i+1}</div>`;
+            chart.appendChild(bar);
+        });
+    }
+    
+    // --- Статистика выигрышей ---
+    function updateWinsStats() {
+        // Заглушка для демонстрации
+        document.getElementById('totalBets').textContent = history.filter(e => e.startsWith('Прогноз')).length;
+        document.getElementById('totalSpent').textContent = (history.filter(e => e.startsWith('Прогноз')).length * 100) + ' руб';
+        document.getElementById('totalWon').textContent = '0 руб';
+        document.getElementById('balance').textContent = '-' + (history.filter(e => e.startsWith('Прогноз')).length * 100) + ' руб';
+    }
+    
     // --- Инициализация при загрузке ---
-    document.getElementById('genBtn').onclick = generateNumbers;
+    document.getElementById('genBtn').addEventListener('click', generateNumbers);
     updateStats();
     updateWinsStats();
     generateNumbers();
@@ -1897,7 +1970,7 @@
     });
     
     // Обработчик кнопки обновления статистики
-    document.getElementById('refreshStatsBtn').onclick = updateWinsStats;
+    document.getElementById('refreshStatsBtn').addEventListener('click', updateWinsStats);
     
     // Фикс для iPad Split View
     function lockViewport() {

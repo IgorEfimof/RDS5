@@ -681,6 +681,23 @@
             font-size: 1.2rem;
         }
         
+        .win-mark-btn {
+            padding: 4px 8px;
+            font-size: 13px;
+            background: var(--selected-color);
+            border: none;
+            border-radius: 4px;
+            color: white;
+            cursor: pointer;
+            margin-left: 5px;
+        }
+        
+        .win-amount {
+            font-weight: bold;
+            color: var(--selected-color);
+            margin-left: 5px;
+        }
+        
         /* Адаптивность */
         @media (max-width: 480px) {
             .number {
@@ -718,6 +735,10 @@
                 min-width: 75px;
                 font-size: 14px;
                 padding: 10px 5px;
+            }
+            
+            .history-actions {
+                width: 90px;
             }
         }
     </style>
@@ -798,7 +819,7 @@
                         <div class="history-type">Тип</div>
                         <div class="history-field">Поле 1 (8 из 20)</div>
                         <div class="history-field2">Поле 2</div>
-                        <div class="history-actions"></div>
+                        <div class="history-actions">Действия</div>
                     </div>
                     <div id="historyList"></div>
                     <button id="clearHistoryBtn" class="secondary">Очистить историю</button>
@@ -896,9 +917,11 @@
         document.documentElement.classList.add('pwa-mode');
     }
 
-    // --- История ---
+    // --- История и выигрыши ---
     let history = JSON.parse(localStorage.getItem('rapidoHistory') || '[]');
+    let wins = JSON.parse(localStorage.getItem('rapidoWins')) || {};
     if (!Array.isArray(history)) history = [];
+    if (typeof wins !== 'object') wins = {};
     
     // Словарь сокращений для методов
     const methodAbbreviations = {
@@ -926,40 +949,95 @@
             const type = parts[0];
             const field1 = parts[1];
             const field2 = parts[2] || '';
+            const isPrediction = type.startsWith('Прогноз');
+            
+            // Извлекаем ID прогноза (если есть)
+            const predictionId = isPrediction ? type.split('|ID:')[1] || '' : '';
             
             const row = document.createElement('div');
-            row.className = `history-row ${type.startsWith('Прогноз') ? 'prediction' : 'draw'}`;
+            row.className = `history-row ${isPrediction ? 'prediction' : 'draw'}`;
+            
+            let actionsHTML = '';
+            if (isPrediction) {
+                const winAmount = wins[predictionId] || 0;
+                if (winAmount > 0) {
+                    actionsHTML = `<span class="win-amount">+${winAmount}₽</span>
+                    <button class="win-mark-btn" data-id="${predictionId}" data-action="remove">✕</button>`;
+                } else {
+                    actionsHTML = `<button class="win-mark-btn" data-id="${predictionId}" data-action="add">+ Выигрыш</button>`;
+                }
+            }
             
             row.innerHTML = `
-                <div class="history-type">${type}</div>
+                <div class="history-type">${type.split('|ID:')[0]}</div>
                 <div class="history-field">${field1}</div>
                 <div class="history-field2">${field2}</div>
                 <div class="history-actions">
                     <button data-idx="${idx}">X</button>
+                    ${actionsHTML}
                 </div>
             `;
             historyList.appendChild(row);
         });
     }
-    renderHistory();
     
     // Удаление записи
     historyList.addEventListener('click', e => {
         if(e.target.tagName === 'BUTTON') {
             const idx = +e.target.dataset.idx;
-            history.splice(idx, 1);
-            saveHistory();
-            renderHistory();
-            updateStats();
-            updateWinsStats();
+            if (!isNaN(idx)) {
+                // Удаляем запись из истории
+                const entry = history[idx];
+                if (entry.startsWith('Прогноз')) {
+                    const predictionId = entry.split('|ID:')[1] || '';
+                    if (predictionId && wins[predictionId]) {
+                        delete wins[predictionId];
+                        localStorage.setItem('rapidoWins', JSON.stringify(wins));
+                    }
+                }
+                
+                history.splice(idx, 1);
+                saveHistory();
+                renderHistory();
+                updateStats();
+                updateWinsStats();
+            }
+            else if (e.target.classList.contains('win-mark-btn')) {
+                // Обработка выигрышей
+                const predictionId = e.target.dataset.id;
+                const action = e.target.dataset.action;
+                
+                if (action === 'add') {
+                    const amount = prompt('Введите сумму выигрыша в рублях:', '0');
+                    if (amount !== null) {
+                        const winAmount = parseFloat(amount);
+                        if (!isNaN(winAmount) && winAmount >= 0) {
+                            wins[predictionId] = winAmount;
+                            localStorage.setItem('rapidoWins', JSON.stringify(wins));
+                            renderHistory();
+                            updateWinsStats();
+                        } else {
+                            alert('Пожалуйста, введите корректную сумму');
+                        }
+                    }
+                } 
+                else if (action === 'remove') {
+                    delete wins[predictionId];
+                    localStorage.setItem('rapidoWins', JSON.stringify(wins));
+                    renderHistory();
+                    updateWinsStats();
+                }
+            }
         }
     });
     
     // Очистка истории
     document.getElementById('clearHistoryBtn').addEventListener('click', () => {
-        if(confirm('Очистить всю историю?')) {
+        if(confirm('Очистить всю историю и выигрыши?')) {
             history = [];
+            wins = {};
             saveHistory();
+            localStorage.setItem('rapidoWins', JSON.stringify(wins));
             renderHistory();
             updateStats();
             updateWinsStats();
@@ -1115,7 +1193,8 @@
         }
         
         const methodAbbr = methodAbbreviations[currentMethodLabel] || '?';
-        const prediction = `Прогноз (${methodAbbr})|${nums1.join(',')}|${num2}`;
+        const predictionId = 'pred_' + Date.now();
+        const prediction = `Прогноз (${methodAbbr})|ID:${predictionId}|${nums1.join(',')}|${num2}`;
         
         const numbersOnly = `${nums1.join(',')}|${num2}`;
         const isDuplicate = history.some(entry => {
@@ -1178,6 +1257,139 @@
         statsTable.innerHTML = html;
         
         updateFrequencyAnalysis();
+    }
+    
+    // --- Частотный анализ ---
+    function updateFrequencyAnalysis() {
+        const countField1 = Array(20).fill(0);
+        const draws = history.filter(e => !e.startsWith('Прогноз')).length;
+        
+        if(draws === 0) {
+            document.getElementById('meanValue').textContent = 'н/д';
+            document.getElementById('stdDevValue').textContent = 'н/д';
+            document.getElementById('hotNumbers').textContent = 'н/д';
+            document.getElementById('coldNumbers').textContent = 'н/д';
+            document.getElementById('frequencyChart').innerHTML = '';
+            return;
+        }
+        
+        history.forEach(entry => {
+            if(entry.startsWith('Прогноз')) return;
+            const parts = entry.split('|');
+            if(parts.length !== 3) return;
+            const nums1 = parts[1].split(',').map(n => parseInt(n));
+            nums1.forEach(n => {
+                if(n >= 1 && n <= 20) countField1[n - 1]++;
+            });
+        });
+        
+        // Рассчитываем среднее и стандартное отклонение
+        const mean = countField1.reduce((sum, count) => sum + count, 0) / 20;
+        const variance = countField1.reduce((sum, count) => sum + Math.pow(count - mean, 2), 0) / 20;
+        const stdDev = Math.sqrt(variance);
+        
+        document.getElementById('meanValue').textContent = mean.toFixed(2);
+        document.getElementById('stdDevValue').textContent = stdDev.toFixed(2);
+        
+        // Определяем горячие и холодные числа
+        const hotNumbers = [];
+        const coldNumbers = [];
+        
+        countField1.forEach((count, i) => {
+            if(count > mean) hotNumbers.push(i + 1);
+            if(count < mean) coldNumbers.push(i + 1);
+        });
+        
+        document.getElementById('hotNumbers').textContent = hotNumbers.join(', ');
+        document.getElementById('coldNumbers').textContent = coldNumbers.join(', ');
+        
+        // Строим график
+        const maxCount = Math.max(...countField1);
+        const chart = document.getElementById('frequencyChart');
+        chart.innerHTML = '';
+        
+        countField1.forEach((count, i) => {
+            const barHeight = maxCount > 0 ? (count / maxCount * 100) : 0;
+            const bar = document.createElement('div');
+            bar.className = `frequency-bar ${count > mean ? 'hot' : 'cold'}`;
+            bar.style.height = `${barHeight}%`;
+            bar.innerHTML = `<div class="frequency-label">${i+1}</div>`;
+            chart.appendChild(bar);
+        });
+    }
+    
+    // --- Статистика выигрышей ---
+    function updateWinsStats() {
+        // Рассчитываем общую статистику
+        const predictions = history.filter(e => e.startsWith('Прогноз'));
+        const totalBets = predictions.length;
+        const totalSpent = totalBets * 100; // Предполагаем ставку 100 рублей
+        const totalWon = Object.values(wins).reduce((sum, amount) => sum + amount, 0);
+        const balance = totalWon - totalSpent;
+        
+        document.getElementById('totalBets').textContent = totalBets;
+        document.getElementById('totalSpent').textContent = `${totalSpent} руб`;
+        document.getElementById('totalWon').textContent = `${totalWon} руб`;
+        document.getElementById('balance').textContent = `${balance} руб`;
+        document.getElementById('balance').className = balance >= 0 ? 'win-stat-value profit-positive' : 'win-stat-value profit-negative';
+        
+        // Рассчитываем статистику по методам
+        const methodsStats = {};
+        
+        predictions.forEach(entry => {
+            const parts = entry.split('|');
+            const type = parts[0];
+            const methodMatch = type.match(/\((\w+)\)/);
+            if (methodMatch) {
+                const method = methodMatch[1];
+                const predictionId = parts[0].split('|ID:')[1] || '';
+                const winAmount = wins[predictionId] || 0;
+                
+                if (!methodsStats[method]) {
+                    methodsStats[method] = {
+                        bets: 0,
+                        spent: 0,
+                        won: 0
+                    };
+                }
+                
+                methodsStats[method].bets += 1;
+                methodsStats[method].spent += 100;
+                methodsStats[method].won += winAmount;
+            }
+        });
+        
+        // Обновляем таблицу
+        const methodsStatsBody = document.getElementById('methodsStatsBody');
+        methodsStatsBody.innerHTML = '';
+        
+        for (const [method, data] of Object.entries(methodsStats)) {
+            const profit = data.won - data.spent;
+            const roi = (profit / data.spent * 100).toFixed(1);
+            
+            const row = document.createElement('tr');
+            row.innerHTML = `
+                <td>${methodAbbreviations[method] || method}</td>
+                <td>${data.bets}</td>
+                <td>${data.spent} руб</td>
+                <td>${data.won} руб</td>
+                <td class="roi-cell ${roi >= 0 ? 'roi-positive' : 'roi-negative'}">${roi}%</td>
+                <td class="${profit >= 0 ? 'roi-positive' : 'roi-negative'}">${profit} руб</td>
+            `;
+            methodsStatsBody.appendChild(row);
+        }
+        
+        // Добавляем строку "Всего"
+        const totalRow = document.createElement('tr');
+        totalRow.innerHTML = `
+            <td><strong>Всего</strong></td>
+            <td><strong>${totalBets}</strong></td>
+            <td><strong>${totalSpent} руб</strong></td>
+            <td><strong>${totalWon} руб</strong></td>
+            <td class="roi-cell ${balance >= 0 ? 'roi-positive' : 'roi-negative'}"><strong>${(balance / totalSpent * 100).toFixed(1)}%</strong></td>
+            <td class="${balance >= 0 ? 'roi-positive' : 'roi-negative'}"><strong>${balance} руб</strong></td>
+        `;
+        methodsStatsBody.appendChild(totalRow);
     }
     
     // --- Методы генерации ---
@@ -1873,79 +2085,12 @@
         }, 100);
     }
     
-    // --- Частотный анализ ---
-    function updateFrequencyAnalysis() {
-        const countField1 = Array(20).fill(0);
-        const draws = history.filter(e => !e.startsWith('Прогноз')).length;
-        
-        if(draws === 0) {
-            document.getElementById('meanValue').textContent = 'н/д';
-            document.getElementById('stdDevValue').textContent = 'н/д';
-            document.getElementById('hotNumbers').textContent = 'н/д';
-            document.getElementById('coldNumbers').textContent = 'н/д';
-            document.getElementById('frequencyChart').innerHTML = '';
-            return;
-        }
-        
-        history.forEach(entry => {
-            if(entry.startsWith('Прогноз')) return;
-            const parts = entry.split('|');
-            if(parts.length !== 3) return;
-            const nums1 = parts[1].split(',').map(n => parseInt(n));
-            nums1.forEach(n => {
-                if(n >= 1 && n <= 20) countField1[n - 1]++;
-            });
-        });
-        
-        // Рассчитываем среднее и стандартное отклонение
-        const mean = countField1.reduce((sum, count) => sum + count, 0) / 20;
-        const variance = countField1.reduce((sum, count) => sum + Math.pow(count - mean, 2), 0) / 20;
-        const stdDev = Math.sqrt(variance);
-        
-        document.getElementById('meanValue').textContent = mean.toFixed(2);
-        document.getElementById('stdDevValue').textContent = stdDev.toFixed(2);
-        
-        // Определяем горячие и холодные числа
-        const hotNumbers = [];
-        const coldNumbers = [];
-        
-        countField1.forEach((count, i) => {
-            if(count > mean) hotNumbers.push(i + 1);
-            if(count < mean) coldNumbers.push(i + 1);
-        });
-        
-        document.getElementById('hotNumbers').textContent = hotNumbers.join(', ');
-        document.getElementById('coldNumbers').textContent = coldNumbers.join(', ');
-        
-        // Строим график
-        const maxCount = Math.max(...countField1);
-        const chart = document.getElementById('frequencyChart');
-        chart.innerHTML = '';
-        
-        countField1.forEach((count, i) => {
-            const barHeight = maxCount > 0 ? (count / maxCount * 100) : 0;
-            const bar = document.createElement('div');
-            bar.className = `frequency-bar ${count > mean ? 'hot' : 'cold'}`;
-            bar.style.height = `${barHeight}%`;
-            bar.innerHTML = `<div class="frequency-label">${i+1}</div>`;
-            chart.appendChild(bar);
-        });
-    }
-    
-    // --- Статистика выигрышей ---
-    function updateWinsStats() {
-        // Заглушка для демонстрации
-        document.getElementById('totalBets').textContent = history.filter(e => e.startsWith('Прогноз')).length;
-        document.getElementById('totalSpent').textContent = (history.filter(e => e.startsWith('Прогноз')).length * 100) + ' руб';
-        document.getElementById('totalWon').textContent = '0 руб';
-        document.getElementById('balance').textContent = '-' + (history.filter(e => e.startsWith('Прогноз')).length * 100) + ' руб';
-    }
-    
     // --- Инициализация при загрузке ---
     document.getElementById('genBtn').addEventListener('click', generateNumbers);
     updateStats();
     updateWinsStats();
     generateNumbers();
+    renderHistory();
     
     // Обработчики для всех кнопок
     document.querySelectorAll('button').forEach(button => {
